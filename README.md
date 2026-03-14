@@ -58,4 +58,8 @@ wordreference/
 
 ## License
 
-MIT
+**Proprietary License**
+
+Copyright (c) 2026 Abdullah Kavakli. All rights reserved.
+
+Commercial use, redistribution, and modification require prior written consent and payment of a licensing fee. See the `LICENSE` file for full terms.
