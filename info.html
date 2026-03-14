@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>WordReference Dictionary – Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 40px 50px;
+      color: #222;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: #15437e;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      font-size: 15px;
+      margin-top: 28px;
+      color: #15437e;
+    }
+
+    p,
+    li {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    select {
+      margin-left: 8px;
+      padding: 3px 6px;
+    }
+
+    #status {
+      color: #2e7d32;
+      display: none;
+      margin-left: 10px;
+      font-size: 13px;
+    }
+
+    a {
+      color: #1a73e8;
+    }
+
+    code {
+      background: #f1f3f4;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>WordReference Dictionary</h1>
+  <p>Multi-language dictionary powered by <a href="https://www.wordreference.com" target="_blank"
+      rel="noopener noreferrer">WordReference.com</a>.</p>
+
+  <h2>In-page popup trigger</h2>
+  <p>
+    To open the in-page translation bubble quickly, you can <strong>double-click</strong> a selected word while holding
+    a modifier key, or use a keyboard shortcut.
+  </p>
+  <p>
+    Double-click a selected word while holding:&nbsp;
+    <label for="modifier-select">Modifier key:</label>
+    <select id="modifier-select">
+      <option value="alt">Alt (default)</option>
+      <option value="ctrl">Ctrl</option>
+      <option value="shift">Shift</option>
+      <option value="meta">Meta (Cmd / Win)</option>
+      <option value="none">None (any double-click)</option>
+    </select>
+    <span id="status">Saved.</span>
+  </p>
+  <p>
+    Alternatively, press <strong>Alt + <span class="shortcut-key-display">Q</span></strong> on a selected word (no
+    Chrome shortcut registration needed).
+  </p>
+
+  <h2>IPA pronunciation</h2>
+  <p>
+    Display IPA phonetic transcription for English words (sourced from WordReference.com).<br>
+    <label for="ipa-dialect-select">Dialect:</label>
+    <select id="ipa-dialect-select">
+      <option value="us">American English (US) – default</option>
+      <option value="uk">British English (UK)</option>
+    </select>
+    <span id="ipa-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <h2>Language pair</h2>
+  <p>
+    Choose which dictionary to use by default in the popup and in-page bubble.<br>
+    <label for="lang-pair-select">Dictionary:</label>
+    <select id="lang-pair-select">
+      <option value="tr">English ↔ Turkish (default)</option>
+      <option value="es">English ↔ Spanish</option>
+      <option value="it">English ↔ Italian</option>
+      <option value="pt">English ↔ Portuguese</option>
+      <option value="fr">English ↔ French</option>
+      <option value="de">English ↔ German</option>
+      <option value="nl">English ↔ Dutch</option>
+      <option value="sv">English ↔ Swedish</option>
+      <option value="ar">English ↔ Arabic</option>
+      <option value="zh">English ↔ Chinese</option>
+      <option value="ru">English ↔ Russian</option>
+      <option value="gr">English ↔ Greek</option>
+      <option value="pl">English ↔ Polish</option>
+      <option value="ro">English ↔ Romanian</option>
+      <option value="cz">English ↔ Czech</option>
+      <option value="ja">English ↔ Japanese</option>
+      <option value="ko">English ↔ Korean</option>
+      <option value="is">English ↔ Icelandic</option>
+    </select>
+    <span id="lang-pair-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <h2>Spanish pronunciation</h2>
+  <p>
+    Choose the default Spanish accent for the pronunciation button in the popup.<br>
+    <label for="spanish-dialect-select">Accent:</label>
+    <select id="spanish-dialect-select">
+      <option value="es-ES">Spain – Castilian (default)</option>
+      <option value="es-MX">Latin America – Mexican</option>
+      <option value="es-AR">Latin America – Argentine</option>
+    </select>
+    <span id="spanish-dialect-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <h2>Portuguese pronunciation</h2>
+  <p>
+    Choose the default Portuguese accent for the pronunciation button in the popup.<br>
+    <label for="portuguese-dialect-select">Accent:</label>
+    <select id="portuguese-dialect-select">
+      <option value="pt-PT">Portugal – European (default)</option>
+      <option value="pt-BR">Brazil – Brazilian</option>
+    </select>
+    <span id="portuguese-dialect-status"
+      style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <h2>Keyboard shortcuts</h2>
+
+  <p>
+    <label for="shortcut-key-select">In-page popup shortcut:</label>
+    Alt +
+    <select id="shortcut-key-select">
+      <option value="q">Q (default)</option>
+      <option value="z">Z</option>
+      <option value="w">W</option>
+      <option value="e">E</option>
+      <option value="d">D</option>
+      <option value="s">S</option>
+      <option value="a">A</option>
+      <option value="t">T</option>
+      <option value="v">V</option>
+    </select>
+    <span id="shortcut-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <p>
+    <label for="shortcut-key2-select">Chrome command shortcut:</label>
+    Alt +
+    <select id="shortcut-key2-select">
+      <option value="x">X (default)</option>
+      <option value="z">Z</option>
+      <option value="q">Q</option>
+      <option value="w">W</option>
+      <option value="e">E</option>
+      <option value="d">D</option>
+      <option value="s">S</option>
+      <option value="a">A</option>
+      <option value="t">T</option>
+      <option value="v">V</option>
+    </select>
+    <span id="shortcut2-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <p>
+    <label for="popup-shortcut-key-select">Popup shortcut (page-level):</label>
+    Alt +
+    <select id="popup-shortcut-key-select">
+      <option value="z">Z (default)</option>
+      <option value="x">X</option>
+      <option value="q">Q</option>
+      <option value="w">W</option>
+      <option value="e">E</option>
+      <option value="d">D</option>
+      <option value="s">S</option>
+      <option value="a">A</option>
+      <option value="t">T</option>
+      <option value="v">V</option>
+    </select>
+    <span id="popup-shortcut-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <ul>
+    <li><strong>Alt + <span class="popup-shortcut-key-display">Z</span></strong> – page shortcut that opens the
+      extension popup <em>(customizable above)</em></li>
+    <li><strong>Alt + <span class="shortcut-key-display">Q</span></strong> – page shortcut for the in-page translation
+      bubble on normal web pages <em>(customizable above)</em></li>
+    <li><strong>Alt + <span class="shortcut-key2-display">X</span></strong> – Chrome command shortcut for the in-page
+      translation bubble, useful when the page shortcut is unavailable</li>
+  </ul>
+  <div
+    style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px 14px;font-size:13px;margin-top:4px;">
+    <strong>Shortcuts not responding?</strong><br>
+    Chrome may have assigned one or more shortcuts to another extension, or left the suggested keys inactive. If that
+    happens, open <code>chrome://extensions/shortcuts</code>, find <em>WordReference Dictionary</em>, and assign the
+    popup and in-page bubble shortcuts manually.<br>
+    If a page shortcut is still blocked, the Chrome command shortcut usually continues to work.
+  </div>
+
+  <h2>Omnibox</h2>
+  <p>Type <code>wr</code> in the address bar, press <kbd>Space</kbd>, then type a word to open WordReference.com
+    directly.</p>
+
+  <h2>Features</h2>
+  <ul>
+    <li>Toolbar popup with automatic direction detection for 18 languages and manual toggling.</li>
+    <li>Select a word on any page and use <strong>Alt+double-click</strong>, <strong>Alt+<span
+          class="shortcut-key-display">Q</span></strong>, or <strong>Alt+<span
+          class="shortcut-key2-display">X</span></strong> to open the in-page translation bubble.</li>
+    <li>Right-click any selected text → <em>WordReference: …</em> to open the full results page.</li>
+    <li>Native audio buttons and text-to-speech fallbacks for 18+ dialects and accents.</li>
+  </ul>
+
+  <footer>
+    <p>WordReference Dictionary Chrome Extension &mdash; v1.4.0</p>
+    <p>&copy; 2026 Abdullah Kavakli. All rights reserved. Commercial use requires payment.</p>
+    <p><a href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer">wordreference.com</a></p>
+  </footer>
+
+  <script src="scripts/options.js"></script>
+</body>
+
+</html>

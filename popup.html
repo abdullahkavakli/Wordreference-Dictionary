@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="styles/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/font-awesome.min.css" rel="stylesheet">
+  <link href="styles/main.css" rel="stylesheet">
+  <link href="styles/loading.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Search bar -->
+  <div class="text-center">
+    <div id="form_div">
+      <div class="input-row">
+        <input type="search" class="form-control" id="search-input" placeholder="Search WordReference…"
+          autocomplete="off" autofocus tabindex="1">
+        <div class="btn-group dir-group" id="dir-group" role="group">
+          <button type="button" class="btn btn-outline-secondary active" id="dir-auto"
+            title="Auto-detect language">Auto</button>
+          <button type="button" class="btn btn-outline-secondary" id="dir-fwd"
+            title="English → other language">EN→</button>
+          <button type="button" class="btn btn-outline-secondary" id="dir-rev"
+            title="Other language → English">→EN</button>
+        </div>
+        <button type="button" class="btn btn-primary" id="wr-btn">WR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TTS / logo bar -->
+  <div id="voice-tts" class="container">
+    <img src="images/voice-logo.png" alt="" width="40" height="30">
+    <button type="button" id="flag-tr-btn" class="icon-btn" aria-label="Play Turkish pronunciation"><img id="flag-tr"
+        src="images/flag-tr.png" alt="" class="flag flag-tr"></button>
+    <button type="button" id="flag-es-btn" class="icon-btn" aria-label="Play Spanish pronunciation"><img id="flag-es"
+        src="images/flag-es.png" alt="" class="flag flag-es"></button>
+    <button type="button" id="flag-it-btn" class="icon-btn" aria-label="Play Italian pronunciation"><img id="flag-it"
+        src="images/flag-it.png" alt="" class="flag flag-it"></button>
+    <button type="button" id="flag-pt-btn" class="icon-btn" aria-label="Play Portuguese pronunciation"><img id="flag-pt"
+        src="images/flag-pt.png" alt="" class="flag flag-pt"></button>
+    <button type="button" id="flag-fr-btn" class="icon-btn" aria-label="Play French pronunciation"><img id="flag-fr"
+        src="images/flag-fr.png" alt="" class="flag flag-fr"></button>
+    <button type="button" id="flag-de-btn" class="icon-btn" aria-label="Play German pronunciation"><img id="flag-de"
+        src="images/flag-de.png" alt="" class="flag flag-de"></button>
+    <button type="button" id="flag-nl-btn" class="icon-btn" aria-label="Play Dutch pronunciation"><img id="flag-nl"
+        src="images/flag-nl.png" alt="" class="flag flag-nl"></button>
+    <button type="button" id="flag-sv-btn" class="icon-btn" aria-label="Play Swedish pronunciation"><img id="flag-sv"
+        src="images/flag-sv.png" alt="" class="flag flag-sv"></button>
+    <button type="button" id="flag-ar-btn" class="icon-btn" aria-label="Play Arabic pronunciation"><img id="flag-ar"
+        src="images/flag-ar.png" alt="" class="flag flag-ar"></button>
+    <button type="button" id="flag-zh-btn" class="icon-btn" aria-label="Play Chinese pronunciation"><img id="flag-zh"
+        src="images/flag-zh.png" alt="" class="flag flag-zh"></button>
+    <button type="button" id="flag-ru-btn" class="icon-btn" aria-label="Play Russian pronunciation"><img id="flag-ru"
+        src="images/flag-ru.png" alt="" class="flag flag-ru"></button>
+    <button type="button" id="flag-gr-btn" class="icon-btn" aria-label="Play Greek pronunciation"><img id="flag-gr"
+        src="images/flag-gr.png" alt="" class="flag flag-gr"></button>
+    <button type="button" id="flag-pl-btn" class="icon-btn" aria-label="Play Polish pronunciation"><img id="flag-pl"
+        src="images/flag-pl.png" alt="" class="flag flag-pl"></button>
+    <button type="button" id="flag-ro-btn" class="icon-btn" aria-label="Play Romanian pronunciation"><img id="flag-ro"
+        src="images/flag-ro.png" alt="" class="flag flag-ro"></button>
+    <button type="button" id="flag-cz-btn" class="icon-btn" aria-label="Play Czech pronunciation"><img id="flag-cz"
+        src="images/flag-cz.png" alt="" class="flag flag-cz"></button>
+    <button type="button" id="flag-ja-btn" class="icon-btn" aria-label="Play Japanese pronunciation"><img id="flag-ja"
+        src="images/flag-ja.png" alt="" class="flag flag-ja"></button>
+    <button type="button" id="flag-ko-btn" class="icon-btn" aria-label="Play Korean pronunciation"><img id="flag-ko"
+        src="images/flag-ko.png" alt="" class="flag flag-ko"></button>
+    <button type="button" id="flag-is-btn" class="icon-btn" aria-label="Play Icelandic pronunciation"><img id="flag-is"
+        src="images/flag-is.png" alt="" class="flag flag-is"></button>
+    <button type="button" id="flag-us-btn" class="icon-btn" aria-label="Play American English pronunciation"><img
+        id="flag-us" src="images/flag-us.png" alt="" class="flag flag-us"></button>
+    <button type="button" id="flag-uk-btn" class="icon-btn" aria-label="Play British English pronunciation"><img
+        id="flag-uk" src="images/flag-uk.png" alt="" class="flag flag-uk"></button>
+    <span id="ipa-inline" class="wr-ipa-inline" aria-live="polite"></span>
+    <button type="button" id="wr-logo-btn" class="icon-btn wr-logo-btn" aria-label="Open in WordReference"><img
+        id="wr-logo" src="images/AppIcon.png" alt="" class="wr-logo-img"></button>
+  </div>
+
+  <!-- Results -->
+  <div class="search_results">
+    <div id="loading">
+      <div class="outer-shadow"></div>
+      <div class="inner-shadow"></div>
+      <div class="timer">
+        <div class="dot"><span></span></div>
+        <div class="hold" id="left">
+          <div class="pie"></div>
+        </div>
+        <div class="hold" id="right">
+          <div class="pie"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="content"></div>
+    <div class="popup-footer"
+      style="text-align: center; font-size: 9px; color: #888; margin-top: 10px; border-top: 1px solid #eee; padding-top: 4px;">
+      &copy; 2026 Abdullah Kavakli. All rights reserved.
+    </div>
+  </div>
+
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tether.min.js"></script>
+  <script src="scripts/bootstrap.min.js"></script>
+  <script src="scripts/popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+body {
+  min-width: 490px;
+}
+
+table {
+  overflow: scroll;
+  font-size: small;
+}
+
+table tbody th {
+  font-size: x-small;
+}
+
+#form_div {
+  padding: 6px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#search-input {
+  flex: 1;
+  box-sizing: border-box;
+  border: 2px solid #15437e;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #f0f4f8;
+  padding: 8px 12px;
+}
+
+#search-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+  background-color: #fff;
+}
+
+.dir-group .btn {
+  font-size: 11px;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+.dir-group .btn.active {
+  background-color: #15437e;
+  color: #fff;
+  border-color: #15437e;
+}
+
+#wr-btn {
+  background-color: #15437e;
+  border: 2px solid #15437e;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#wr-btn:hover {
+  background-color: #1a73e8;
+  border-color: #1a73e8;
+}
+
+#voice-tts {
+  border-top: 1px solid #e8eaed;
+  padding: 5px 56px 5px 8px;
+  display: none;
+  position: relative;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 0;
+}
+
+.wr-ipa-inline {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #555;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flags */
+.flag {
+  height: 28px;
+  width: 42px;
+  cursor: pointer;
+}
+
+.flag:hover {
+  opacity: 0.75;
+}
+
+.wr-logo-btn {
+  position: absolute;
+  right: 14px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.wr-logo-img {
+  height: 28px;
+}
+
+.wr-logo-btn:hover {
+  opacity: 1;
+}
+
+.search_results {
+  width: 490px;
+}
+
+table thead {
+  cursor: pointer;
+}
+
+table tbody a {
+  cursor: pointer;
+  color: #15437e;
+}
+
+table tbody a:hover {
+  color: #1a73e8;
+  text-decoration: underline;
+}
+
+.section-label {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  font-style: italic;
+}

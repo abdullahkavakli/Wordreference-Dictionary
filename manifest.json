@@ -1,0 +1,67 @@
+{
+   "author": "WordReference Dictionary Extension",
+   "manifest_version": 3,
+   "name": "WordReference Dictionary",
+   "short_name": "WR Dict",
+   "description": "WordReference Dictionary – English ↔ 18 languages (Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, etc.)",
+   "version": "1.4.0",
+
+   "action": {
+      "default_icon": {
+         "128": "images/AppIcon.png",
+         "256": "images/AppIcon.png"
+      },
+      "default_popup": "popup.html",
+      "default_title": "WordReference Dictionary"
+   },
+
+   "icons": {
+      "16":  "images/AppIcon.png",
+      "128": "images/AppIcon.png",
+      "256": "images/AppIcon.png"
+   },
+
+   "permissions": [ "activeTab", "contextMenus", "scripting", "storage", "tts" ],
+   "host_permissions": [ "https://www.wordreference.com/*" ],
+
+   "background": {
+      "service_worker": "scripts/background.js"
+   },
+
+   "content_scripts": [
+      {
+         "matches": [ "http://*/*", "https://*/*" ],
+         "js": [ "scripts/content.js" ],
+         "run_at": "document_idle",
+         "all_frames": true
+      }
+   ],
+
+   "options_page": "info.html",
+
+   "commands": {
+      "_execute_action": {
+         "suggested_key": {
+            "default":  "Alt+Z",
+            "windows":  "Alt+Z",
+            "mac":      "Alt+Z",
+            "chromeos": "Alt+Z",
+            "linux":    "Alt+Z"
+         }
+      },
+      "show-translation-popup": {
+         "suggested_key": {
+            "default":  "Alt+X",
+            "windows":  "Alt+X",
+            "mac":      "Alt+X",
+            "chromeos": "Alt+X",
+            "linux":    "Alt+X"
+         },
+         "description": "Show WordReference in-page popup for selected word"
+      }
+   },
+
+   "omnibox": {
+      "keyword": "wr"
+   }
+}
