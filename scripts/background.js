@@ -17,6 +17,12 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    chrome.runtime.openOptionsPage();
+  }
+});
+
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'wr-lookup' && info.selectionText) {
     const term = info.selectionText.trim();

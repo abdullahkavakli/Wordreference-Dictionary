@@ -14,6 +14,11 @@ A Chrome extension that brings **WordReference.com Turkish ↔ English** lookups
 | **TTS** | Click the Turkish or English flag buttons in the popup |
 | **Open in WR** | Click the WR logo in the popup to open the full page |
 
+## Chrome Web Store
+
+Install from the Chrome Web Store:
+https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd
+
 ## Installation
 
 1. Open `chrome://extensions`
