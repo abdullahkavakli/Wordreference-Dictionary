@@ -23,23 +23,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-// ── Badge state ──────────────────────────────────────────────────────────────
-
-async function initBadge() {
-  const { badgeOn } = await chrome.storage.local.get({ badgeOn: true });
-  chrome.action.setBadgeBackgroundColor({ color: '#1a73e8' });
-  chrome.action.setBadgeText({ text: badgeOn ? 'ON' : '' });
-}
-
-chrome.runtime.onInstalled.addListener(() => initBadge());
-chrome.runtime.onStartup.addListener(() => initBadge());
-
 chrome.action.onClicked.addListener(async () => {
-  const { badgeOn } = await chrome.storage.local.get({ badgeOn: true });
-  const newState = !badgeOn;
-  await chrome.storage.local.set({ badgeOn: newState });
-  await chrome.action.setBadgeText({ text: newState ? 'ON' : '' });
-
   // Open popup programmatically (default_popup is not set so onClicked fires)
   try {
     await chrome.action.setPopup({ popup: 'popup.html' });
