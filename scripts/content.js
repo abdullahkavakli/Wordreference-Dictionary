@@ -10,6 +10,9 @@
   const STYLE_ID = 'wr-selection-style';
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
+  const FETCH_TIMEOUT_MS = 8000;
+  const FETCH_RETRIES = 4;
+  const FETCH_BACKOFF_MS = 300;
 
   // ── Settings ────────────────────────────────────────────────────────────────
 
@@ -23,11 +26,22 @@
     popupShortcutKey: 'z'
   };
   let settings = { ...defaultSettings };
+  let settingsReadyPromise = null;
+  let popupRequestToken = 0;
 
   function loadSettings() {
-    chrome.storage.sync.get(defaultSettings, stored => {
-      settings = { ...defaultSettings, ...stored };
+    settingsReadyPromise = new Promise(resolve => {
+      chrome.storage.sync.get(defaultSettings, stored => {
+        settings = { ...defaultSettings, ...stored };
+        resolve();
+      });
     });
+    return settingsReadyPromise;
+  }
+
+  async function ensureSettingsLoaded() {
+    if (!settingsReadyPromise) loadSettings();
+    await settingsReadyPromise;
   }
 
   // ── Styles ───────────────────────────────────────────────────────────────────
@@ -107,19 +121,45 @@
 
   // ── Selection helpers ────────────────────────────────────────────────────────
 
-  function getSelectionText() {
+  function getSelectionText(sourceTarget) {
     const sel = window.getSelection();
-    return sel ? sel.toString().trim() : '';
+    const selected = sel ? sel.toString().trim() : '';
+    if (selected) return selected;
+
+    const target = sourceTarget && sourceTarget.nodeType === 1 ? sourceTarget : document.activeElement;
+    if (!target) return '';
+
+    const isTextInput = target.tagName === 'TEXTAREA'
+      || (target.tagName === 'INPUT' && /^(text|search|url|tel|password|email)$/i.test(target.type || ''));
+    if (!isTextInput) return '';
+
+    const start = typeof target.selectionStart === 'number' ? target.selectionStart : 0;
+    const end = typeof target.selectionEnd === 'number' ? target.selectionEnd : 0;
+    if (end <= start) return '';
+    return String(target.value || '').slice(start, end).trim();
   }
 
-  function getSelectionPosition() {
+  function getSelectionPosition(sourceTarget) {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return { x: 16, y: 16 };
-    const rect = sel.getRangeAt(0).getBoundingClientRect();
-    return {
-      x: rect.left + window.scrollX,
-      y: rect.bottom + window.scrollY + 8
-    };
+    if (sel && sel.rangeCount > 0) {
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      if (rect && (rect.width > 0 || rect.height > 0)) {
+        return {
+          x: rect.left + window.scrollX,
+          y: rect.bottom + window.scrollY + 8
+        };
+      }
+    }
+
+    if (sourceTarget && typeof sourceTarget.getBoundingClientRect === 'function') {
+      const rect = sourceTarget.getBoundingClientRect();
+      return {
+        x: rect.left + window.scrollX,
+        y: rect.bottom + window.scrollY + 8
+      };
+    }
+
+    return { x: 16, y: 16 };
   }
 
   // ── Language detection ───────────────────────────────────────────────────────
@@ -229,49 +269,106 @@
       .replace(/"/g, '&quot;');
   }
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function isTransientFetchError(err) {
+    if (!err) return false;
+    if (err.name === 'AbortError') return true;
+    if (typeof err.status === 'number') return err.status === 429 || err.status >= 500;
+    const msg = String(err.message || '').toLowerCase();
+    return msg.includes('network')
+      || msg.includes('failed to fetch')
+      || msg.includes('incomplete wordreference payload');
+  }
+
+  function popupCanRender(popup, token) {
+    return token === popupRequestToken && popup && popup.isConnected && popup.id === POPUP_ID;
+  }
+
   // Stream the response and stop as soon as the WRD table is complete.
   // WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
   async function fetchWRPage(url) {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let html = '';
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        html += decoder.decode(value, { stream: true });
-        const wrdIdx = html.search(/id=["']WRD["']/);
-        if (wrdIdx !== -1) {
-          const tableClose = html.indexOf('</table>', wrdIdx);
-          if (tableClose !== -1) {
-            html = html.slice(0, tableClose + 8);
-            break;
-          }
+    let lastError = null;
+
+    for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      try {
+        const resp = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+        if (!resp.ok) {
+          const httpError = new Error('HTTP ' + resp.status);
+          httpError.status = resp.status;
+          throw httpError;
         }
-        if (html.length > 80000) break; // safety cap
+        if (!resp.body) throw new Error('Empty response body');
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let html = '';
+        let foundCompleteTable = false;
+        let capReached = false;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            html += decoder.decode(value, { stream: true });
+            const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
+            if (wrdIdx !== -1) {
+              const tableClose = html.indexOf('</table>', wrdIdx);
+              if (tableClose !== -1) {
+                html = html.slice(0, tableClose + 8);
+                foundCompleteTable = true;
+                break;
+              }
+            }
+            if (html.length > 80000) {
+              capReached = true;
+              break; // safety cap
+            }
+          }
+        } finally {
+          reader.cancel().catch(() => { });
+        }
+
+        // If stream ended naturally without early table detection, keep full HTML
+        // and let parseWR decide whether results exist.
+        if (capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
+        clearTimeout(timeoutId);
+        return html;
+      } catch (err) {
+        lastError = err;
+        clearTimeout(timeoutId);
+        const canRetry = attempt < (FETCH_RETRIES - 1) && isTransientFetchError(err);
+        if (!canRetry) throw err;
+        await sleep(FETCH_BACKOFF_MS * (attempt + 1));
       }
-    } finally {
-      reader.cancel().catch(() => { });
     }
-    return html;
+
+    throw lastError || new Error('Unknown fetch error');
   }
 
-  async function showPopupForSelection() {
-    const term = getSelectionText();
+  async function showPopupForSelection(sourceTarget = null, prefetchedTerm = '') {
+    const term = prefetchedTerm || getSelectionText(sourceTarget);
     if (!term || term.length < 2) return;
 
-    const popup = createPopup(getSelectionPosition());
+    const pos = getSelectionPosition(sourceTarget);
+    await ensureSettingsLoaded();
+
+    const token = ++popupRequestToken;
+    const popup = createPopup(pos);
     const dir = resolveDir(term);
     const url = `${WR_BASE}/${dir}/${encodeURIComponent(term)}`;
 
     try {
       const html = await fetchWRPage(url);
+      if (!popupCanRender(popup, token)) return;
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const rows = parseWR(doc);
 
       if (!rows.length) {
+        if (!popupCanRender(popup, token)) return;
         popup.innerHTML = `<div class="wr-err">No results for "<strong>${escapeHtml(term)}</strong>".</div>`;
         return;
       }
@@ -280,6 +377,7 @@
       const hasMore = rows.length > MAX_ROWS;
 
       // Render translations immediately, leave IPA placeholder empty
+      if (!popupCanRender(popup, token)) return;
       popup.innerHTML = `
         <div class="wr-hd">
           <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
@@ -302,11 +400,13 @@
 
       // Extract IPA after browser has painted the translations
       queueMicrotask(() => {
+        if (!popupCanRender(popup, token)) return;
         const ipa = extractIPA(doc);
         const ipaEl = document.getElementById('wr-ipa-inline');
         if (ipa && ipaEl) ipaEl.textContent = ipa;
       });
     } catch (_) {
+      if (!popupCanRender(popup, token)) return;
       popup.innerHTML = `<div class="wr-err">Failed to fetch results.</div>`;
     }
   }
@@ -326,8 +426,14 @@
 
   document.addEventListener('dblclick', event => {
     if (!matchesModifier(event)) return;
-    const term = getSelectionText();
-    if (term && term.length >= 2) showPopupForSelection();
+    const sourceTarget = event.target;
+    const immediateTerm = getSelectionText(sourceTarget);
+    if (immediateTerm && immediateTerm.length >= 2) {
+      showPopupForSelection(sourceTarget, immediateTerm);
+      return;
+    }
+    // Fallback for pages where selection finalizes after dblclick dispatch.
+    setTimeout(() => showPopupForSelection(sourceTarget), 0);
   });
 
   document.addEventListener('keydown', event => {
@@ -350,10 +456,10 @@
       return;
     }
     if (event.altKey && (pressed === sKey || pressed === sKey2)) {
-      const term = getSelectionText();
+      const term = getSelectionText(event.target);
       if (term && term.length >= 2) {
         event.preventDefault();
-        showPopupForSelection();
+        showPopupForSelection(event.target, term);
       }
     }
   });
