@@ -162,36 +162,6 @@
     return { x: 16, y: 16 };
   }
 
-  // ── Language detection ───────────────────────────────────────────────────────
-
-  function detectTargetLanguageDir(str, lang) {
-    const t = str.toLowerCase();
-    switch (lang) {
-      case 'tr': return /[ğüşıöç]/.test(t) ? 'tren' : 'entr';
-      case 'es': return /[áéíóúüñ¿¡]/.test(t) ? 'esen' : 'enes';
-      case 'it': return /[àèìîòù]/.test(t) ? 'iten' : 'enit';
-      case 'pt': return /[ãõáéíóúâêôç]/.test(t) ? 'pten' : 'enpt';
-      case 'fr': return /[éèêëàâîïôûùüÿçœæ]/.test(t) ? 'fren' : 'enfr';
-      case 'de': return /[äöüß]/.test(t) ? 'deen' : 'ende';
-      case 'nl': return /[ëïé]/.test(t) ? 'nlen' : 'ennl';
-      case 'sv': return /[åäö]/.test(t) ? 'sven' : 'ensv';
-      case 'ar': return /[\u0600-\u06FF]/.test(str) ? 'aren' : 'enar';
-      case 'zh': return /[\u4E00-\u9FFF]/.test(str) ? 'zhen' : 'enzh';
-      case 'ru': return /[\u0400-\u04FF]/.test(str) ? 'ruen' : 'enru';
-      case 'gr': return /[\u0370-\u03FF]/.test(str) ? 'gren' : 'engr';
-      case 'pl': return /[ąćęłńóśźż]/.test(t) ? 'plen' : 'enpl';
-      case 'ro': return /[ăâîșț]/.test(t) ? 'roen' : 'enro';
-      case 'cz': return /[áčďéěíňóřšťúůýž]/.test(t) ? 'czen' : 'encz';
-      case 'ja': return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(str) ? 'jaen' : 'enja';
-      case 'ko': return /[\uAC00-\uD7AF\u3130-\u318F]/.test(str) ? 'koen' : 'enko';
-      case 'is': return /[áéíóúýðþæö]/.test(t) ? 'isen' : 'enis';
-      default: return 'entr';
-    }
-  }
-
-  function resolveDir(str) {
-    return detectTargetLanguageDir(str, settings.langPair);
-  }
 
   // ── Parser ───────────────────────────────────────────────────────────────────
 
@@ -358,7 +328,7 @@
 
     const token = ++popupRequestToken;
     const popup = createPopup(pos);
-    const dir = resolveDir(term);
+    const dir = 'en' + settings.langPair;
     const url = `${WR_BASE}/${dir}/${encodeURIComponent(term)}`;
 
     try {

@@ -48,37 +48,10 @@ function getSelectedDirMode() {
   return 'auto';
 }
 
-function detectTargetLanguageDir(str, lang) {
-  const t = str.toLowerCase();
-  switch (lang) {
-    case 'tr': return /[ğüşıöç]/.test(t) ? 'tren' : 'entr';
-    case 'es': return /[áéíóúüñ¿¡]/.test(t) ? 'esen' : 'enes';
-    case 'it': return /[àèìîòù]/.test(t) ? 'iten' : 'enit';
-    case 'pt': return /[ãõáéíóúâêôç]/.test(t) ? 'pten' : 'enpt';
-    case 'fr': return /[éèêëàâîïôûùüÿçœæ]/.test(t) ? 'fren' : 'enfr';
-    case 'de': return /[äöüß]/.test(t) ? 'deen' : 'ende';
-    case 'nl': return /[ëïé]/.test(t) ? 'nlen' : 'ennl';
-    case 'sv': return /[åäö]/.test(t) ? 'sven' : 'ensv';
-    case 'ar': return /[\u0600-\u06FF]/.test(str) ? 'aren' : 'enar';
-    case 'zh': return /[\u4E00-\u9FFF]/.test(str) ? 'zhen' : 'enzh';
-    case 'ru': return /[\u0400-\u04FF]/.test(str) ? 'ruen' : 'enru';
-    case 'gr': return /[\u0370-\u03FF]/.test(str) ? 'gren' : 'engr';
-    case 'pl': return /[ąćęłńóśźż]/.test(t) ? 'plen' : 'enpl';
-    case 'ro': return /[ăâîșț]/.test(t) ? 'roen' : 'enro';
-    case 'cz': return /[áčďéěíňóřšťúůýž]/.test(t) ? 'czen' : 'encz';
-    case 'ja': return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(str) ? 'jaen' : 'enja';
-    case 'ko': return /[\uAC00-\uD7AF\u3130-\u318F]/.test(str) ? 'koen' : 'enko';
-    case 'is': return /[áéíóúýðþæö]/.test(t) ? 'isen' : 'enis';
-    default: return 'entr';
-  }
-}
-
-// Returns WR dict code, e.g. 'entr', 'tren', 'enfr', 'fren'
 function resolveDir(str) {
   const mode = getSelectedDirMode();
-  if (mode === 'fwd') return 'en' + activeLang;
   if (mode === 'rev') return activeLang + 'en';
-  return detectTargetLanguageDir(str, activeLang);
+  return 'en' + activeLang;
 }
 
 // Human-readable language labels for result table headers
@@ -467,12 +440,7 @@ async function searchWR(rawStr) {
     renderResults(sections, str, dir);
     document.getElementById('voice-tts').style.display = 'block';
     // Extract IPA after browser has painted the results
-    queueMicrotask/**
- * WordReference Dictionary Extension
- * Copyright (c) 2026 Abdullah Kavakli. All rights reserved.
- * Proprietary License. Unauthorized redistribution prohibited.
- */
-      (() => {
+    queueMicrotask(() => {
         const ipa = extractIPA(doc);
         document.getElementById('ipa-inline').textContent = ipa || '';
       });

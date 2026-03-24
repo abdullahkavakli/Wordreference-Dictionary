@@ -11,12 +11,12 @@
          "128": "images/AppIcon.png",
          "256": "images/AppIcon.png"
       },
-      "default_popup": "popup.html",
       "default_title": "WordReference Dictionary"
    },
 
    "icons": {
       "16":  "images/AppIcon.png",
+      "48":  "images/AppIcon.png",
       "128": "images/AppIcon.png",
       "256": "images/AppIcon.png"
    },

@@ -9,7 +9,7 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | Feature | How to use |
 |---|---|
 | **Popup search** | Click the WR toolbar icon. On normal pages, you can also press **Alt+Z** (customizable in options). |
-| **Auto direction** | The extension auto-detects direction for the selected language pair (when characters/scripts are distinguishable); you can manually switch with `Auto / forward / reverse` buttons. |
+| **Auto direction** | WordReference auto-detects the word's language; you can manually switch with `forward / reverse` buttons in the popup. |
 | **In-page bubble** | Select a word and use **Alt + double-click**, **Alt+Q** (page shortcut), or **Alt+X** (Chrome command shortcut). |
 | **Context menu** | Right-click selected text, then click *WordReference: …*. |
 | **Omnibox** | Type `wr` in the address bar, press Space, then enter a word. |

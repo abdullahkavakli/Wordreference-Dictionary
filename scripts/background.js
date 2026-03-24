@@ -23,11 +23,35 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
+// ── Badge state ──────────────────────────────────────────────────────────────
+
+async function initBadge() {
+  const { badgeOn } = await chrome.storage.local.get({ badgeOn: true });
+  chrome.action.setBadgeBackgroundColor({ color: '#1a73e8' });
+  chrome.action.setBadgeText({ text: badgeOn ? 'ON' : '' });
+}
+
+chrome.runtime.onInstalled.addListener(() => initBadge());
+chrome.runtime.onStartup.addListener(() => initBadge());
+
+chrome.action.onClicked.addListener(async () => {
+  const { badgeOn } = await chrome.storage.local.get({ badgeOn: true });
+  const newState = !badgeOn;
+  await chrome.storage.local.set({ badgeOn: newState });
+  await chrome.action.setBadgeText({ text: newState ? 'ON' : '' });
+
+  // Open popup programmatically (default_popup is not set so onClicked fires)
+  try {
+    await chrome.action.setPopup({ popup: 'popup.html' });
+    await chrome.action.openPopup();
+    await chrome.action.setPopup({ popup: '' });
+  } catch { /* popup may fail on restricted pages */ }
+});
+
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'wr-lookup' && info.selectionText) {
     const term = info.selectionText.trim();
-    const dir = resolveAutoDir(term);
-    chrome.tabs.create({ url: `${WR_BASE}/${dir}/${encodeURIComponent(term)}` });
+    chrome.tabs.create({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
   }
 });
 
@@ -62,8 +86,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
     const term = results?.map(r => r.result).find(t => t && t.length >= 2);
     if (term) {
-      const dir = resolveAutoDir(term);
-      chrome.tabs.create({ url: `${WR_BASE}/${dir}/${encodeURIComponent(term)}` });
+      chrome.tabs.create({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
       return;
     }
   } catch { /* truly inaccessible page */ }
@@ -72,12 +95,13 @@ chrome.commands.onCommand.addListener(async (command) => {
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (wrBase) => {
+      func: (wrBase, langPair) => {
         const ID = 'wr-pdf-search';
         if (document.getElementById(ID)) {
           document.getElementById(ID).querySelector('input').focus();
           return;
         }
+
         const box = document.createElement('div');
         box.id = ID;
         box.style.cssText = `
@@ -121,24 +145,24 @@ chrome.commands.onCommand.addListener(async (command) => {
           e.preventDefault();
           const term = input.value.trim();
           if (!term) return;
-          const dir = resolveAutoDir(term);
+          const dir = 'en' + langPair;
           window.open(`${wrBase}/${dir}/${encodeURIComponent(term)}`, '_blank');
           box.remove();
         });
       },
-      args: [WR_BASE]
+      args: [WR_BASE, _bgLangPair]
     });
   } catch { /* truly inaccessible page */ }
 });
 
 // ── Page-level popup shortcut relay (Alt+<key>) ─────────────────────────────
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
+chrome.runtime.onMessage.addListener(async (msg, sender) => {
   if (!msg || msg.type !== 'WR_OPEN_POPUP') return;
-  const tabId = sender && sender.tab && sender.tab.id;
-  if (!tabId) return;
   try {
-    chrome.action.openPopup({ tabId });
+    await chrome.action.setPopup({ popup: 'popup.html' });
+    await chrome.action.openPopup();
+    await chrome.action.setPopup({ popup: '' });
   } catch {
     // Ignore failures (restricted pages or no user gesture)
   }
@@ -149,44 +173,13 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
 chrome.omnibox.onInputEntered.addListener((text) => {
   const term = text.trim();
   if (!term) return;
-  const dir = resolveAutoDir(term);
-  chrome.tabs.update({ url: `${WR_BASE}/${dir}/${encodeURIComponent(term)}` });
+  chrome.tabs.update({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
 });
 
-// ── Shared helpers (duplicated here because service workers are isolated) ──────
+// ── Language pair setting ──────────────────────────────────────────────────────
 
 let _bgLangPair = 'tr';
 chrome.storage.sync.get({ langPair: 'tr' }, res => _bgLangPair = res.langPair);
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.langPair) _bgLangPair = changes.langPair.newValue;
 });
-
-function detectTargetLanguageDir(str, lang) {
-  const t = str.toLowerCase();
-  switch (lang) {
-    case 'tr': return /[ğüşıöç]/.test(t) ? 'tren' : 'entr';
-    case 'es': return /[áéíóúüñ¿¡]/.test(t) ? 'esen' : 'enes';
-    case 'it': return /[àèìîòù]/.test(t) ? 'iten' : 'enit';
-    case 'pt': return /[ãõáéíóúâêôç]/.test(t) ? 'pten' : 'enpt';
-    case 'fr': return /[éèêëàâîïôûùüÿçœæ]/.test(t) ? 'fren' : 'enfr';
-    case 'de': return /[äöüß]/.test(t) ? 'deen' : 'ende';
-    case 'nl': return /[ëïé]/.test(t) ? 'nlen' : 'ennl';
-    case 'sv': return /[åäö]/.test(t) ? 'sven' : 'ensv';
-    case 'ar': return /[\u0600-\u06FF]/.test(str) ? 'aren' : 'enar';
-    case 'zh': return /[\u4E00-\u9FFF]/.test(str) ? 'zhen' : 'enzh';
-    case 'ru': return /[\u0400-\u04FF]/.test(str) ? 'ruen' : 'enru';
-    case 'gr': return /[\u0370-\u03FF]/.test(str) ? 'gren' : 'engr';
-    case 'pl': return /[ąćęłńóśźż]/.test(t) ? 'plen' : 'enpl';
-    case 'ro': return /[ăâîșț]/.test(t) ? 'roen' : 'enro';
-    case 'cz': return /[áčďéěíňóřšťúůýž]/.test(t) ? 'czen' : 'encz';
-    case 'ja': return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(str) ? 'jaen' : 'enja';
-    case 'ko': return /[\uAC00-\uD7AF\u3130-\u318F]/.test(str) ? 'koen' : 'enko';
-    case 'is': return /[áéíóúýðþæö]/.test(t) ? 'isen' : 'enis';
-    default: return 'entr';
-  }
-}
-
-// Auto-detect language pair and direction from character set
-function resolveAutoDir(str) {
-  return detectTargetLanguageDir(str, _bgLangPair);
-}
