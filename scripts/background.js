@@ -32,10 +32,15 @@ chrome.action.onClicked.addListener(async () => {
   } catch { /* popup may fail on restricted pages */ }
 });
 
+function wrLookupUrl(term) {
+  if (_bgLangPair === 'en') return `${WR_BASE}/definition/${encodeURIComponent(term)}`;
+  return `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}`;
+}
+
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'wr-lookup' && info.selectionText) {
     const term = info.selectionText.trim();
-    chrome.tabs.create({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
+    chrome.tabs.create({ url: wrLookupUrl(term) });
   }
 });
 
@@ -70,7 +75,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
     const term = results?.map(r => r.result).find(t => t && t.length >= 2);
     if (term) {
-      chrome.tabs.create({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
+      chrome.tabs.create({ url: wrLookupUrl(term) });
       return;
     }
   } catch { /* truly inaccessible page */ }
@@ -129,7 +134,7 @@ chrome.commands.onCommand.addListener(async (command) => {
           e.preventDefault();
           const term = input.value.trim();
           if (!term) return;
-          const dir = 'en' + langPair;
+          const dir = langPair === 'en' ? 'definition' : ('en' + langPair);
           window.open(`${wrBase}/${dir}/${encodeURIComponent(term)}`, '_blank');
           box.remove();
         });

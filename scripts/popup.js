@@ -32,10 +32,14 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 function applyLangFlagVisibility() {
   const flags = ['tr', 'es', 'it', 'pt', 'fr', 'de', 'nl', 'sv', 'ar', 'zh', 'ru', 'gr', 'pl', 'ro', 'cz', 'ja', 'ko', 'is'];
+  const isMonolingual = activeLang === 'en';
   flags.forEach(lang => {
     const btn = document.getElementById(`flag-${lang}-btn`);
-    if (btn) btn.style.display = activeLang === lang ? '' : 'none';
+    if (btn) btn.style.display = (!isMonolingual && activeLang === lang) ? '' : 'none';
   });
+  // Hide direction buttons in monolingual mode (no forward/reverse concept)
+  const dirGroup = document.getElementById('dir-group');
+  if (dirGroup) dirGroup.style.display = isMonolingual ? 'none' : '';
 }
 // ─── Language helpers ────────────────────────────────────────────────────────
 
@@ -49,6 +53,7 @@ function getSelectedDirMode() {
 }
 
 function resolveDir(str) {
+  if (activeLang === 'en') return 'definition';
   const mode = getSelectedDirMode();
   if (mode === 'rev') return activeLang + 'en';
   return 'en' + activeLang;
@@ -67,6 +72,7 @@ for (const [code, name] of Object.entries(LANG_MAP)) {
   LANG_LABELS[`en${code}`] = ['English', name];
   LANG_LABELS[`${code}en`] = [name, 'English'];
 }
+LANG_LABELS['definition'] = ['English', 'Definition'];
 
 // ─── DOM helpers ─────────────────────────────────────────────────────────────
 
@@ -156,6 +162,116 @@ function parseWR(doc) {
   if (section.entries.length > 0) sections.push(section);
   return sections;
 }
+function parseEnDef(doc) {
+  const sections = [];
+
+  // ── Random House entries (div.entryRH) ──
+  // Each entryRH is preceded by a <span class="small1"> with the dictionary source title.
+  doc.querySelectorAll('div.entryRH').forEach(entry => {
+    // Grab source title from preceding span.small1
+    let title = '';
+    let prev = entry.previousElementSibling;
+    while (prev) {
+      if (prev.classList.contains('small1')) { title = prev.textContent.trim(); break; }
+      if (prev.classList.contains('entrySeparator')) break;
+      prev = prev.previousElementSibling;
+    }
+
+    const defs = [];
+    entry.querySelectorAll('ol > li').forEach(li => {
+      const defEl = li.querySelector('.rh_def');
+      if (!defEl) return;
+      const clone = defEl.cloneNode(true);
+      let example = '';
+      const exEl = clone.querySelector('.rh_ex');
+      if (exEl) { example = exEl.textContent.trim(); exEl.remove(); }
+      clone.querySelectorAll('.rh_lab, .rh_cat').forEach(el => el.remove());
+      const text = clone.textContent.replace(/\s+/g, ' ').trim();
+      if (text) defs.push({ text, example });
+    });
+    if (defs.length) sections.push({ title, defs });
+  });
+
+  // ── Collins entries (div.superentry.collinsen) ──
+  doc.querySelectorAll('div.superentry.collinsen').forEach(entry => {
+    let title = '';
+    let prev = entry.previousElementSibling;
+    while (prev) {
+      if (prev.classList.contains('small1')) { title = prev.textContent.trim(); break; }
+      if (prev.classList.contains('entrySeparator')) break;
+      prev = prev.previousElementSibling;
+    }
+
+    const defs = [];
+    entry.querySelectorAll('li.sense').forEach(li => {
+      const defEl = li.querySelector('.definition');
+      if (!defEl) return;
+      const text = defEl.textContent.replace(/\s+/g, ' ').trim();
+      const exEls = li.querySelectorAll('.example');
+      const example = exEls.length ? [...exEls].map(e => e.textContent.trim()).join('; ') : '';
+      if (text) defs.push({ text, example });
+    });
+    if (defs.length) sections.push({ title: title || 'Collins English Dictionary', defs });
+  });
+
+  return sections.length > 0 ? sections : null;
+}
+
+function renderDefinitions(sections, str) {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  if (!sections || sections.length === 0) {
+    notFound(str);
+    return;
+  }
+
+  sections.forEach(sec => {
+    if (!sec.defs.length) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'wr-def-section';
+
+    if (sec.title) {
+      const hdr = document.createElement('div');
+      hdr.className = 'wr-def-source';
+      hdr.textContent = sec.title;
+      wrapper.appendChild(hdr);
+    }
+
+    const ol = document.createElement('ol');
+    ol.className = 'wr-def-list';
+
+    sec.defs.forEach(d => {
+      if (d.pos && !d.text) {
+        // POS label row
+        const posLi = document.createElement('li');
+        posLi.className = 'wr-def-pos-header';
+        posLi.style.listStyle = 'none';
+        posLi.innerHTML = `<strong>${escapeHtml(d.pos)}</strong>`;
+        ol.appendChild(posLi);
+        return;
+      }
+      const li = document.createElement('li');
+      li.innerHTML = escapeHtml(d.text)
+        + (d.example ? ` <em class="text-info">${escapeHtml(d.example)}</em>` : '');
+      ol.appendChild(li);
+    });
+
+    wrapper.appendChild(ol);
+    content.appendChild(wrapper);
+  });
+
+  // Clicking section headers collapses/expands the list
+  content.querySelectorAll('.wr-def-source').forEach(hdr => {
+    hdr.style.cursor = 'pointer';
+    hdr.addEventListener('click', () => {
+      const list = hdr.nextElementSibling;
+      if (list) list.style.display = list.style.display === 'none' ? '' : 'none';
+    });
+  });
+}
+
 // ─── IPA extraction ───────────────────────────────────────────────────────────────────────────
 
 function extractIPA(doc) {
@@ -389,7 +505,10 @@ function renderResults(sections, str, dir) {
 
 // Stream the response and stop as soon as the WRD table is complete.
 // WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
+// English definition pages have no WRD table and need a larger cap.
 async function fetchWRPage(url) {
+  const isDefPage = url.includes('/definition/');
+  const CAP = isDefPage ? 200000 : 80000;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   if (!resp.body) return await resp.text();
@@ -401,15 +520,17 @@ async function fetchWRPage(url) {
       const { done, value } = await reader.read();
       if (done) break;
       html += decoder.decode(value, { stream: true });
-      const wrdIdx = html.search(/id=["']WRD["']/);
-      if (wrdIdx !== -1) {
-        const tableClose = html.indexOf('</table>', wrdIdx);
-        if (tableClose !== -1) {
-          html = html.slice(0, tableClose + 8);
-          break;
+      if (!isDefPage) {
+        const wrdIdx = html.search(/id=["']WRD["']/);
+        if (wrdIdx !== -1) {
+          const tableClose = html.indexOf('</table>', wrdIdx);
+          if (tableClose !== -1) {
+            html = html.slice(0, tableClose + 8);
+            break;
+          }
         }
       }
-      if (html.length > 80000) break; // safety cap
+      if (html.length > CAP) break; // safety cap
     }
   } finally {
     reader.cancel().catch(() => { });
@@ -428,16 +549,23 @@ async function searchWR(rawStr) {
   _lastDir = dir;
   _lastSearchWord = str;
   _wrAudioFiles = [];
+  const isMonolingual = (activeLang === 'en');
 
   try {
     const html = await fetchWRPage(`${WR_BASE}/${dir}/${encodeURIComponent(str)}`);
     if (token !== _searchToken) return;
     document.getElementById('loading').style.display = 'none';
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const sections = parseWR(doc);
+
+    if (isMonolingual) {
+      const defSections = parseEnDef(doc);
+      renderDefinitions(defSections, str);
+    } else {
+      const sections = parseWR(doc);
+      renderResults(sections, str, dir);
+    }
+
     _wrAudioFiles = extractWRAudioFiles(doc);
-    // Render translations immediately
-    renderResults(sections, str, dir);
     document.getElementById('voice-tts').style.display = 'block';
     // Extract IPA after browser has painted the results
     queueMicrotask(() => {

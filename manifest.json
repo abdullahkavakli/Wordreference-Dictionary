@@ -4,7 +4,7 @@
    "name": "WordReference Dictionary",
    "short_name": "WR Dict",
    "description": "WordReference Dictionary – English ↔ 18 languages (Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, etc.)",
-   "version": "1.4.2",
+   "version": "1.5.0",
 
    "action": {
       "default_icon": {

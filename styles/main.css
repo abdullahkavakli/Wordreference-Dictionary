@@ -139,3 +139,33 @@ table tbody a:hover {
   font-weight: 400;
   font-style: italic;
 }
+
+/* English monolingual definitions */
+.wr-def-section {
+  margin-bottom: 12px;
+}
+
+.wr-def-source {
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+  border-bottom: 1px solid #e8eaed;
+  padding: 4px 0;
+  margin-bottom: 4px;
+}
+
+.wr-def-list {
+  padding-left: 24px;
+  margin: 4px 0;
+  font-size: small;
+}
+
+.wr-def-list li {
+  margin-bottom: 3px;
+}
+
+.wr-def-pos-header {
+  margin-top: 6px;
+  margin-left: -16px;
+  color: #15437e;
+}

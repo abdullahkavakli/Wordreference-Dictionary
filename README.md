@@ -1,15 +1,15 @@
 # WordReference Dictionary – Chrome Extension
 
-A Chrome extension that brings **WordReference.com lookups for English ↔ multiple languages** to your browser, modeled after the [Tureng Dictionary extension](https://chromewebstore.google.com/detail/tureng-dictionary/ihedienojfhdahpomfldoejaimefofff).
+A Chrome extension that brings **WordReference.com lookups for English ↔ multiple languages** and **English monolingual definitions** to your browser, modeled after the [Tureng Dictionary extension](https://chromewebstore.google.com/detail/tureng-dictionary/ihedienojfhdahpomfldoejaimefofff).
 
-Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, German, Dutch, Swedish, Arabic, Chinese, Russian, Greek, Polish, Romanian, Czech, Japanese, Korean, and Icelandic.
+Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, German, Dutch, Swedish, Arabic, Chinese, Russian, Greek, Polish, Romanian, Czech, Japanese, Korean, Icelandic, and English (monolingual).
 
 ## Features
 
 | Feature | How to use |
 |---|---|
 | **Popup search** | Click the WR toolbar icon. On normal pages, you can also press **Alt+Z** (customizable in options). |
-| **Auto direction** | WordReference auto-detects the word's language; you can manually switch with `forward / reverse` buttons in the popup. |
+| **Auto direction** | WordReference auto-detects the word's language; you can manually switch with `forward / reverse` buttons in the popup (hidden in monolingual mode). |
 | **In-page bubble** | Select a word and use **Alt + double-click**, **Alt+Q** (page shortcut), or **Alt+X** (Chrome command shortcut). |
 | **Context menu** | Right-click selected text, then click *WordReference: …*. |
 | **TTS** | Click the pronunciation flag buttons in the popup (when available). |

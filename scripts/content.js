@@ -202,6 +202,41 @@
     return rows;
   }
 
+  // ── English monolingual definition parser ─────────────────────────────────────
+
+  function parseEnDef(doc) {
+    const defs = [];
+
+    // Random House entries
+    doc.querySelectorAll('div.entryRH').forEach(entry => {
+      entry.querySelectorAll('ol > li').forEach(li => {
+        const defEl = li.querySelector('.rh_def');
+        if (!defEl) return;
+        const clone = defEl.cloneNode(true);
+        let example = '';
+        const exEl = clone.querySelector('.rh_ex');
+        if (exEl) { example = exEl.textContent.trim(); exEl.remove(); }
+        clone.querySelectorAll('.rh_lab, .rh_cat').forEach(el => el.remove());
+        const text = clone.textContent.replace(/\s+/g, ' ').trim();
+        if (text) defs.push({ text, example });
+      });
+    });
+
+    // Collins entries
+    doc.querySelectorAll('div.superentry.collinsen').forEach(entry => {
+      entry.querySelectorAll('li.sense').forEach(li => {
+        const defEl = li.querySelector('.definition');
+        if (!defEl) return;
+        const text = defEl.textContent.replace(/\s+/g, ' ').trim();
+        const exEls = li.querySelectorAll('.example');
+        const example = exEls.length ? [...exEls].map(e => e.textContent.trim()).join('; ') : '';
+        if (text) defs.push({ text, example });
+      });
+    });
+
+    return defs;
+  }
+
   // ── IPA extraction ───────────────────────────────────────────────────────────
 
   function extractIPA(doc) {
@@ -260,7 +295,10 @@
 
   // Stream the response and stop as soon as the WRD table is complete.
   // WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
+  // English definition pages have no WRD table and need a larger cap.
   async function fetchWRPage(url) {
+    const isDefPage = url.includes('/definition/');
+    const CAP = isDefPage ? 200000 : 80000;
     let lastError = null;
 
     for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
@@ -285,16 +323,18 @@
             const { done, value } = await reader.read();
             if (done) break;
             html += decoder.decode(value, { stream: true });
-            const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
-            if (wrdIdx !== -1) {
-              const tableClose = html.indexOf('</table>', wrdIdx);
-              if (tableClose !== -1) {
-                html = html.slice(0, tableClose + 8);
-                foundCompleteTable = true;
-                break;
+            if (!isDefPage) {
+              const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
+              if (wrdIdx !== -1) {
+                const tableClose = html.indexOf('</table>', wrdIdx);
+                if (tableClose !== -1) {
+                  html = html.slice(0, tableClose + 8);
+                  foundCompleteTable = true;
+                  break;
+                }
               }
             }
-            if (html.length > 80000) {
+            if (html.length > CAP) {
               capReached = true;
               break; // safety cap
             }
@@ -305,7 +345,7 @@
 
         // If stream ended naturally without early table detection, keep full HTML
         // and let parseWR decide whether results exist.
-        if (capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
+        if (!isDefPage && capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
         clearTimeout(timeoutId);
         return html;
       } catch (err) {
@@ -329,47 +369,76 @@
 
     const token = ++popupRequestToken;
     const popup = createPopup(pos);
-    const dir = 'en' + settings.langPair;
+    const isMonolingual = settings.langPair === 'en';
+    const dir = isMonolingual ? 'definition' : ('en' + settings.langPair);
     const url = `${WR_BASE}/${dir}/${encodeURIComponent(term)}`;
 
     try {
       const html = await fetchWRPage(url);
       if (!popupCanRender(popup, token)) return;
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const rows = parseWR(doc);
 
-      if (!rows.length) {
+      if (isMonolingual) {
+        const defs = parseEnDef(doc);
+        if (!defs.length) {
+          if (!popupCanRender(popup, token)) return;
+          popup.innerHTML = `<div class="wr-err">No results for "<strong>${escapeHtml(term)}</strong>".</div>`;
+          return;
+        }
+
+        const displayDefs = defs.slice(0, MAX_ROWS);
+        const hasMore = defs.length > MAX_ROWS;
+
         if (!popupCanRender(popup, token)) return;
-        popup.innerHTML = `<div class="wr-err">No results for "<strong>${escapeHtml(term)}</strong>".</div>`;
-        return;
+        popup.innerHTML = `
+          <div class="wr-hd">
+            <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
+            <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+          </div>
+          ${displayDefs.map((d, i) => `
+            <div class="wr-row" style="display:block;padding:3px 0;border-top:1px solid #f0f0f0">
+              <span style="color:#888;font-size:11px">${i + 1}.</span>
+              ${escapeHtml(d.text)}
+              ${d.example ? `<span class="wr-pos">${escapeHtml(d.example)}</span>` : ''}
+            </div>`).join('')}
+          ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${defs.length} definitions on WordReference.com…</a>` : ''}
+        `;
+      } else {
+        const rows = parseWR(doc);
+
+        if (!rows.length) {
+          if (!popupCanRender(popup, token)) return;
+          popup.innerHTML = `<div class="wr-err">No results for "<strong>${escapeHtml(term)}</strong>".</div>`;
+          return;
+        }
+
+        const displayRows = rows.slice(0, MAX_ROWS);
+        const hasMore = rows.length > MAX_ROWS;
+
+        // Render translations immediately, leave IPA placeholder empty
+        if (!popupCanRender(popup, token)) return;
+        popup.innerHTML = `
+          <div class="wr-hd">
+            <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
+            <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+          </div>
+          ${displayRows.map(e => `
+            <div class="wr-row">
+              <div class="wr-from">
+                ${escapeHtml(e.from)}
+                ${e.fromPos ? `<span class="wr-pos"> (${escapeHtml(e.fromPos)})</span>` : ''}
+              </div>
+              <div>
+                ${e.translations.slice(0, 2).map(t =>
+          `${escapeHtml(t.word)}${t.pos ? ` <span class="wr-pos">(${escapeHtml(t.pos)})</span>` : ''}`
+        ).join(', ')}
+              </div>
+            </div>`).join('')}
+          ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${rows.length} results on WordReference.com…</a>` : ''}
+        `;
       }
 
-      const displayRows = rows.slice(0, MAX_ROWS);
-      const hasMore = rows.length > MAX_ROWS;
-
-      // Render translations immediately, leave IPA placeholder empty
-      if (!popupCanRender(popup, token)) return;
-      popup.innerHTML = `
-        <div class="wr-hd">
-          <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
-          <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
-        </div>
-        ${displayRows.map(e => `
-          <div class="wr-row">
-            <div class="wr-from">
-              ${escapeHtml(e.from)}
-              ${e.fromPos ? `<span class="wr-pos"> (${escapeHtml(e.fromPos)})</span>` : ''}
-            </div>
-            <div>
-              ${e.translations.slice(0, 2).map(t =>
-        `${escapeHtml(t.word)}${t.pos ? ` <span class="wr-pos">(${escapeHtml(t.pos)})</span>` : ''}`
-      ).join(', ')}
-            </div>
-          </div>`).join('')}
-        ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${rows.length} results on WordReference.com…</a>` : ''}
-      `;
-
-      // Extract IPA after browser has painted the translations
+      // Extract IPA after browser has painted
       queueMicrotask(() => {
         if (!popupCanRender(popup, token)) return;
         const ipa = extractIPA(doc);
