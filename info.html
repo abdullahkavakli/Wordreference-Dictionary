@@ -67,12 +67,14 @@
   <h1>WordReference Dictionary</h1>
   <p>Multi-language dictionary powered by <a href="https://www.wordreference.com" target="_blank"
       rel="noopener noreferrer">WordReference.com</a>.</p>
+  <p><strong>Select a word and use Alt + double-click, Alt+Q (page shortcut), or Alt+X (Chrome command shortcut).</strong></p>
 
   <h2>Quick start</h2>
   <ul>
-    <li>Hold <strong>Alt</strong> and <strong>double-click</strong> a word to open the translation bubble.</li>
-    <li>Press <strong>Alt + Z</strong> to open the floating dictionary.</li>
-    <li>Use <strong>Alt + Q</strong> or <strong>Alt + X</strong> on selected text for quick lookup.</li>
+    <li>Hold <strong><span class="shortcut-modifier-display">Alt</span></strong> and <strong>double-click</strong> a word to open the translation bubble.</li>
+    <li>Use <strong><span class="shortcut-modifier-display">Alt</span> + <span class="shortcut-key-display">Q</span></strong> or <strong><span class="shortcut-modifier-display">Alt</span> + <span class="shortcut-key2-display">X</span></strong> on selected text for quick lookup.</li>
+    <li>Press <strong><span class="shortcut-modifier-display">Alt</span> + <span class="popup-shortcut-key-display">Z</span></strong> to open the floating dictionary.</li>
+    <li>Type <strong>wr</strong> in Chrome's address bar, press <strong>Tab</strong>, then type a word.</li>
   </ul>
 
   <h2>In-page popup trigger</h2>
@@ -93,7 +95,7 @@
     <span id="status">Saved.</span>
   </p>
   <p>
-    Alternatively, press <strong>Alt + <span class="shortcut-key-display">Q</span></strong> on a selected word (no
+    Alternatively, press <strong><span class="shortcut-modifier-display">Alt</span> + <span class="shortcut-key-display">Q</span></strong> on a selected word (no
     Chrome shortcut registration needed).
   </p>
 
@@ -162,8 +164,20 @@
   <h2>Keyboard shortcuts</h2>
 
   <p>
+    <label for="shortcut-modifier-select">Keyboard modifier:</label>
+    <select id="shortcut-modifier-select">
+      <option value="alt">Alt (default)</option>
+      <option value="ctrl">Ctrl</option>
+      <option value="shift">Shift</option>
+      <option value="meta">Meta (Cmd / Win)</option>
+      <option value="none">None (key only)</option>
+    </select>
+    <span id="shortcut-modifier-status" style="color:#2e7d32;display:none;margin-left:10px;font-size:13px;">Saved.</span>
+  </p>
+
+  <p>
     <label for="shortcut-key-select">In-page popup shortcut:</label>
-    Alt +
+    <span class="shortcut-modifier-display">Alt</span> +
     <select id="shortcut-key-select">
       <option value="q">Q (default)</option>
       <option value="z">Z</option>
@@ -180,7 +194,7 @@
 
   <p>
     <label for="shortcut-key2-select">Chrome command shortcut:</label>
-    Alt +
+    <span class="shortcut-modifier-display">Alt</span> +
     <select id="shortcut-key2-select">
       <option value="x">X (default)</option>
       <option value="z">Z</option>
@@ -198,7 +212,7 @@
 
   <p>
     <label for="popup-shortcut-key-select">Popup shortcut (page-level):</label>
-    Alt +
+    <span class="shortcut-modifier-display">Alt</span> +
     <select id="popup-shortcut-key-select">
       <option value="z">Z (default)</option>
       <option value="x">X</option>
@@ -215,11 +229,11 @@
   </p>
 
   <ul>
-    <li><strong>Alt + <span class="popup-shortcut-key-display">Z</span></strong> – page shortcut that opens the
+    <li><strong><span class="shortcut-modifier-display">Alt</span> + <span class="popup-shortcut-key-display">Z</span></strong> – page shortcut that opens the
       extension popup <em>(customizable above)</em></li>
-    <li><strong>Alt + <span class="shortcut-key-display">Q</span></strong> – page shortcut for the in-page translation
+    <li><strong><span class="shortcut-modifier-display">Alt</span> + <span class="shortcut-key-display">Q</span></strong> – page shortcut for the in-page translation
       bubble on normal web pages <em>(customizable above)</em></li>
-    <li><strong>Alt + <span class="shortcut-key2-display">X</span></strong> – Chrome command shortcut for the in-page
+    <li><strong><span class="shortcut-modifier-display">Alt</span> + <span class="shortcut-key2-display">X</span></strong> – Chrome command shortcut for the in-page
       translation bubble, useful when the page shortcut is unavailable</li>
   </ul>
   <div
@@ -234,6 +248,7 @@
   <h2>Features</h2>
   <ul>
     <li>Toolbar popup with manual direction toggling for 18 languages.</li>
+    <li>Omnibox lookup: type <strong>wr</strong> + <strong>Tab</strong> in the address bar, then enter a word.</li>
     <li>Select a word on any page and use <strong>Alt+double-click</strong>, <strong>Alt+<span
           class="shortcut-key-display">Q</span></strong>, or <strong>Alt+<span
           class="shortcut-key2-display">X</span></strong> to open the in-page translation bubble.</li>

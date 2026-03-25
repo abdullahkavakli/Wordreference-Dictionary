@@ -21,6 +21,7 @@
     ipaDialect: 'us',
     langPair: 'tr',
     portugueseDialect: 'pt-PT',
+    shortcutModifier: 'alt',
     shortcutKey: 'q',
     shortcutKey2: 'x',
     popupShortcutKey: 'z'
@@ -394,6 +395,17 @@
     }
   }
 
+  function matchesShortcutModifier(event) {
+    switch (settings.shortcutModifier) {
+      case 'none': return !event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey;
+      case 'ctrl': return event.ctrlKey;
+      case 'shift': return event.shiftKey;
+      case 'meta': return event.metaKey;
+      case 'alt':
+      default: return event.altKey;
+    }
+  }
+
   document.addEventListener('dblclick', event => {
     if (!matchesModifier(event)) return;
     const sourceTarget = event.target;
@@ -420,12 +432,12 @@
 
     if (!pressed) return;
 
-    if (event.altKey && pressed === pKey) {
+    if (matchesShortcutModifier(event) && pressed === pKey) {
       event.preventDefault();
       chrome.runtime.sendMessage({ type: 'WR_OPEN_POPUP' });
       return;
     }
-    if (event.altKey && (pressed === sKey || pressed === sKey2)) {
+    if (matchesShortcutModifier(event) && (pressed === sKey || pressed === sKey2)) {
       const term = getSelectionText(event.target);
       if (term && term.length >= 2) {
         event.preventDefault();
@@ -448,6 +460,7 @@
     if (changes.modifier) settings.modifier = changes.modifier.newValue;
     if (changes.ipaDialect) settings.ipaDialect = changes.ipaDialect.newValue;
     if (changes.langPair) settings.langPair = changes.langPair.newValue;
+    if (changes.shortcutModifier) settings.shortcutModifier = changes.shortcutModifier.newValue;
     if (changes.shortcutKey) settings.shortcutKey = changes.shortcutKey.newValue;
     if (changes.shortcutKey2) settings.shortcutKey2 = changes.shortcutKey2.newValue;
     if (changes.popupShortcutKey) settings.popupShortcutKey = changes.popupShortcutKey.newValue;

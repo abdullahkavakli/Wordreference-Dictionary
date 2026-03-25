@@ -7,6 +7,7 @@
     langPair: 'tr',
     spanishDialect: 'es-ES',
     portugueseDialect: 'pt-PT',
+    shortcutModifier: 'alt',
     shortcutKey: 'q',
     shortcutKey2: 'x',
     popupShortcutKey: 'z'
@@ -22,14 +23,33 @@
   const shortcutSelect   = document.getElementById('shortcut-key-select');
   const shortcut2Select  = document.getElementById('shortcut-key2-select');
   const popupShortcutSelect = document.getElementById('popup-shortcut-key-select');
+  const shortcutModifierSelect = document.getElementById('shortcut-modifier-select');
   const statusEl        = document.getElementById('status');
   const ipaStatusEl     = document.getElementById('ipa-status');
   const shortcutStatus   = document.getElementById('shortcut-status');
   const shortcut2Status  = document.getElementById('shortcut2-status');
   const popupShortcutStatus = document.getElementById('popup-shortcut-status');
+  const shortcutModifierStatus = document.getElementById('shortcut-modifier-status');
   const shortcutDisps    = document.querySelectorAll('.shortcut-key-display');
   const shortcut2Disps   = document.querySelectorAll('.shortcut-key2-display');
   const popupShortcutDisps = document.querySelectorAll('.popup-shortcut-key-display');
+  const shortcutModifierDisps = document.querySelectorAll('.shortcut-modifier-display');
+
+  function modifierLabel(value) {
+    switch (value) {
+      case 'ctrl': return 'Ctrl';
+      case 'shift': return 'Shift';
+      case 'meta': return 'Meta';
+      case 'none': return 'No modifier';
+      case 'alt':
+      default: return 'Alt';
+    }
+  }
+
+  function renderShortcutModifier(value) {
+    const label = modifierLabel(value);
+    shortcutModifierDisps.forEach(el => { el.textContent = label; });
+  }
 
   function showSaved(el) {
     const target = el || statusEl;
@@ -50,6 +70,10 @@
     if (portugueseSelect) {
       portugueseSelect.value = (stored && stored.portugueseDialect) ? stored.portugueseDialect : defaultSettings.portugueseDialect;
     }
+    if (shortcutModifierSelect) {
+      shortcutModifierSelect.value = (stored && stored.shortcutModifier) ? stored.shortcutModifier : defaultSettings.shortcutModifier;
+    }
+    renderShortcutModifier(((stored && stored.shortcutModifier) || defaultSettings.shortcutModifier));
     if (shortcutSelect) {
       shortcutSelect.value = (stored && stored.shortcutKey) ? stored.shortcutKey : defaultSettings.shortcutKey;
     }
@@ -101,6 +125,15 @@
       chrome.storage.sync.set({ shortcutKey: shortcutSelect.value }, () => {
         showSaved(shortcutStatus);
         shortcutDisps.forEach(el => { el.textContent = shortcutSelect.value.toUpperCase(); });
+      });
+    });
+  }
+
+  if (shortcutModifierSelect) {
+    shortcutModifierSelect.addEventListener('change', () => {
+      chrome.storage.sync.set({ shortcutModifier: shortcutModifierSelect.value }, () => {
+        showSaved(shortcutModifierStatus);
+        renderShortcutModifier(shortcutModifierSelect.value);
       });
     });
   }
