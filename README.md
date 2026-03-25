@@ -12,7 +12,6 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | **Auto direction** | WordReference auto-detects the word's language; you can manually switch with `forward / reverse` buttons in the popup. |
 | **In-page bubble** | Select a word and use **Alt + double-click**, **Alt+Q** (page shortcut), or **Alt+X** (Chrome command shortcut). |
 | **Context menu** | Right-click selected text, then click *WordReference: …*. |
-| **Omnibox** | Type `wr` in the address bar, press Space, then enter a word. |
 | **TTS** | Click the pronunciation flag buttons in the popup (when available). |
 | **Open in WR** | Click the WR logo in the popup to open full results on WordReference. |
 
@@ -36,7 +35,7 @@ wordreference/
 ├── popup.html          # Extension popup
 ├── info.html           # Options / settings page
 ├── scripts/
-│   ├── background.js   # Service worker: context menu, omnibox, keyboard shortcut relay
+│   ├── background.js   # Service worker: context menu and keyboard shortcut relay
 │   ├── content.js      # In-page translation bubble
 │   ├── popup.js        # Popup search & rendering
 │   ├── options.js      # Settings page logic

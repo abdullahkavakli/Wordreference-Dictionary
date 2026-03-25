@@ -59,9 +59,5 @@
          },
          "description": "Show WordReference in-page popup for selected word"
       }
-   },
-
-   "omnibox": {
-      "keyword": "wr"
    }
 }

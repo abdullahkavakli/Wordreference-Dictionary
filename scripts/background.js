@@ -152,14 +152,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
   }
 });
 
-// ── Omnibox support (type "wr <word>" in the address bar) ────────────────────
-
-chrome.omnibox.onInputEntered.addListener((text) => {
-  const term = text.trim();
-  if (!term) return;
-  chrome.tabs.update({ url: `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}` });
-});
-
 // ── Language pair setting ──────────────────────────────────────────────────────
 
 let _bgLangPair = 'tr';
