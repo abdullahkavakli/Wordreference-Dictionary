@@ -37,18 +37,6 @@ table tbody th {
   background-color: #fff;
 }
 
-.dir-group .btn {
-  font-size: 11px;
-  padding: 4px 7px;
-  white-space: nowrap;
-}
-
-.dir-group .btn.active {
-  background-color: #15437e;
-  color: #fff;
-  border-color: #15437e;
-}
-
 #wr-btn {
   background-color: #15437e;
   border: 2px solid #15437e;
@@ -87,6 +75,26 @@ table tbody th {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.favorite-btn {
+  font-size: 20px;
+  line-height: 1;
+  color: #15437e;
+  cursor: pointer;
+  margin-right: 2px;
+}
+
+.favorite-btn:disabled {
+  color: #9aa0a6;
+  cursor: not-allowed;
+}
+
+.favorite-status {
+  min-width: 56px;
+  font-size: 11px;
+  color: #2e7d32;
+  white-space: nowrap;
 }
 
 /* Flags */

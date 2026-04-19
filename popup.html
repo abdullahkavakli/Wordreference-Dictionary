@@ -18,14 +18,6 @@
       <div class="input-row">
         <input type="search" class="form-control" id="search-input" placeholder="Search WordReference…"
           autocomplete="off" autofocus tabindex="1">
-        <div class="btn-group dir-group" id="dir-group" role="group">
-          <button type="button" class="btn btn-outline-secondary active" id="dir-auto"
-            title="Auto-detect language">Auto</button>
-          <button type="button" class="btn btn-outline-secondary" id="dir-fwd"
-            title="English → other language">EN→</button>
-          <button type="button" class="btn btn-outline-secondary" id="dir-rev"
-            title="Other language → English">→EN</button>
-        </div>
         <button type="button" class="btn btn-primary" id="wr-btn">WR</button>
       </div>
     </div>
@@ -75,6 +67,9 @@
     <button type="button" id="flag-uk-btn" class="icon-btn" aria-label="Play British English pronunciation"><img
         id="flag-uk" src="images/flag-uk.png" alt="" class="flag flag-uk"></button>
     <span id="ipa-inline" class="wr-ipa-inline" aria-live="polite"></span>
+    <button type="button" id="favorite-btn" class="icon-btn favorite-btn" aria-label="Add to favorites"
+      title="Add to favorites">☆</button>
+    <span id="favorite-status" class="favorite-status" aria-live="polite"></span>
     <button type="button" id="wr-logo-btn" class="icon-btn wr-logo-btn" aria-label="Open in WordReference"><img
         id="wr-logo" src="images/AppIcon.png" alt="" class="wr-logo-img"></button>
   </div>
@@ -105,6 +100,7 @@
   <script src="scripts/jquery.min.js"></script>
   <script src="scripts/tether.min.js"></script>
   <script src="scripts/bootstrap.min.js"></script>
+  <script src="scripts/favorites.js"></script>
   <script src="scripts/popup.js"></script>
 </body>
 

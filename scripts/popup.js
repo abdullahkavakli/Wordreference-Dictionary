@@ -37,25 +37,14 @@ function applyLangFlagVisibility() {
     const btn = document.getElementById(`flag-${lang}-btn`);
     if (btn) btn.style.display = (!isMonolingual && activeLang === lang) ? '' : 'none';
   });
-  // Hide direction buttons in monolingual mode (no forward/reverse concept)
-  const dirGroup = document.getElementById('dir-group');
-  if (dirGroup) dirGroup.style.display = isMonolingual ? 'none' : '';
 }
 // ─── Language helpers ────────────────────────────────────────────────────────
 
 // Active language pair
 let activeLang = 'tr';
 
-function getSelectedDirMode() {
-  if (document.getElementById('dir-fwd').classList.contains('active')) return 'fwd';
-  if (document.getElementById('dir-rev').classList.contains('active')) return 'rev';
-  return 'auto';
-}
-
 function resolveDir(str) {
   if (activeLang === 'en') return 'definition';
-  const mode = getSelectedDirMode();
-  if (mode === 'rev') return activeLang + 'en';
   return 'en' + activeLang;
 }
 
@@ -86,6 +75,101 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const favoriteBtnEl = document.getElementById('favorite-btn');
+const favoriteStatusEl = document.getElementById('favorite-status');
+
+let _lastFavoriteCandidate = null;
+
+function getFirstBilingualExplanation(sections) {
+  if (!sections) return '';
+  for (const section of sections) {
+    if (!section || !Array.isArray(section.entries)) continue;
+    for (const entry of section.entries) {
+      if (!entry || !Array.isArray(entry.translations)) continue;
+      for (const translation of entry.translations) {
+        if (!translation) continue;
+        const gloss = String(translation.gloss || '').trim();
+        if (gloss) return gloss;
+        const word = String(translation.word || '').trim();
+        if (word) return word;
+      }
+    }
+  }
+  return '';
+}
+
+function getFirstDefinitionExplanation(defSections) {
+  if (!defSections) return '';
+  for (const section of defSections) {
+    if (!section || !Array.isArray(section.defs)) continue;
+    for (const def of section.defs) {
+      const text = String((def && def.text) || '').trim();
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+function showFavoriteStatus(text, isError = false) {
+  if (!favoriteStatusEl) return;
+  favoriteStatusEl.style.color = isError ? '#b00020' : '#2e7d32';
+  favoriteStatusEl.textContent = text || '';
+}
+
+function setFavoriteButtonState(enabled, isSaved) {
+  if (!favoriteBtnEl) return;
+  if (!enabled) {
+    favoriteBtnEl.disabled = true;
+    favoriteBtnEl.textContent = '☆';
+    favoriteBtnEl.title = 'Search for a word first';
+    return;
+  }
+
+  favoriteBtnEl.disabled = !!isSaved;
+  favoriteBtnEl.textContent = isSaved ? '★' : '☆';
+  favoriteBtnEl.title = isSaved ? 'Already favorited' : 'Add to favorites';
+}
+
+function buildPopupFavoriteCandidate(word, dir, isMonolingual, sections, defSections, ipa) {
+  const cleanWord = String(word || '').trim();
+  if (!cleanWord || !dir) return null;
+
+  const explanation = isMonolingual
+    ? getFirstDefinitionExplanation(defSections)
+    : getFirstBilingualExplanation(sections);
+
+  const id = window.WRFavorites
+    ? window.WRFavorites.makeFavoriteId(cleanWord, dir)
+    : `${String(dir).toLowerCase()}::${cleanWord.toLowerCase()}`;
+
+  return {
+    id,
+    word: cleanWord,
+    ipa: String(ipa || ''),
+    explanation,
+    dir,
+    langPair: activeLang,
+    source: 'popup',
+    url: `${WR_BASE}/${dir}/${encodeURIComponent(cleanWord)}`
+  };
+}
+
+async function refreshPopupFavoriteButton(searchToken) {
+  if (!favoriteBtnEl) return;
+  if (!_lastFavoriteCandidate || !window.WRFavorites) {
+    setFavoriteButtonState(false, false);
+    return;
+  }
+
+  try {
+    const saved = await window.WRFavorites.isFavoriteId(_lastFavoriteCandidate.id);
+    if (typeof searchToken === 'number' && searchToken !== _searchToken) return;
+    setFavoriteButtonState(true, saved);
+  } catch (_) {
+    setFavoriteButtonState(true, false);
+  }
 }
 
 // ─── WordReference HTML parser ───────────────────────────────────────────────
@@ -413,6 +497,9 @@ function sanitize(str) {
   document.getElementById('loading').style.display = 'block';
   document.getElementById('voice-tts').style.display = 'none';
   document.getElementById('ipa-inline').textContent = '';
+  showFavoriteStatus('');
+  _lastFavoriteCandidate = null;
+  setFavoriteButtonState(false, false);
   document.getElementsByClassName('inner-shadow')[0].style.backgroundColor = '#15437e';
   $('.pie, .dot span').css('background-color', '#' + ((1 << 24) * Math.random() | 0).toString(16));
   return str.trim();
@@ -557,35 +644,42 @@ async function searchWR(rawStr) {
     document.getElementById('loading').style.display = 'none';
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
+    let sections = null;
+    let defSections = null;
+
     if (isMonolingual) {
-      const defSections = parseEnDef(doc);
+      defSections = parseEnDef(doc);
       renderDefinitions(defSections, str);
     } else {
-      const sections = parseWR(doc);
+      sections = parseWR(doc);
       renderResults(sections, str, dir);
     }
 
+    const hasResults = isMonolingual
+      ? !!(defSections && defSections.length)
+      : !!(sections && sections.length);
+
+    if (!hasResults) {
+      _wrAudioFiles = [];
+      _lastFavoriteCandidate = null;
+      document.getElementById('voice-tts').style.display = 'none';
+      showFavoriteStatus('');
+      setFavoriteButtonState(false, false);
+      return;
+    }
+
+    const ipa = extractIPA(doc);
+    _lastFavoriteCandidate = buildPopupFavoriteCandidate(str, dir, isMonolingual, sections, defSections, ipa);
     _wrAudioFiles = extractWRAudioFiles(doc);
     document.getElementById('voice-tts').style.display = 'block';
-    // Extract IPA after browser has painted the results
-    queueMicrotask(() => {
-        const ipa = extractIPA(doc);
-        document.getElementById('ipa-inline').textContent = ipa || '';
-      });
+    document.getElementById('ipa-inline').textContent = ipa || '';
+    await refreshPopupFavoriteButton(token);
   } catch (_) {
     if (token !== _searchToken) return;
     notFound(str);
+    showFavoriteStatus('');
   }
 }
-
-// ─── Direction buttons ───────────────────────────────────────────────────────
-
-['dir-auto', 'dir-fwd', 'dir-rev'].forEach(id => {
-  document.getElementById(id).addEventListener('click', () => {
-    document.querySelectorAll('#dir-group .btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  });
-});
 
 // ─── Search button & Enter key ───────────────────────────────────────────────
 
@@ -615,6 +709,30 @@ document.getElementById('wr-logo').addEventListener('click', () => {
   const dir = _lastDir || resolveDir(word);
   chrome.tabs.create({ url: `${WR_BASE}/${dir}/${encodeURIComponent(word)}` });
 });
+
+if (favoriteBtnEl) {
+  favoriteBtnEl.addEventListener('click', async () => {
+    if (!_lastFavoriteCandidate || !window.WRFavorites) return;
+
+    favoriteBtnEl.disabled = true;
+    showFavoriteStatus('Saving...');
+    try {
+      const result = await window.WRFavorites.addFavorite(_lastFavoriteCandidate);
+      if (result && result.added) {
+        setFavoriteButtonState(true, true);
+        showFavoriteStatus('Saved');
+      } else {
+        setFavoriteButtonState(true, true);
+        showFavoriteStatus('');
+      }
+    } catch (_) {
+      setFavoriteButtonState(true, false);
+      showFavoriteStatus('Save failed', true);
+    }
+  });
+}
+
+setFavoriteButtonState(false, false);
 
 // ─── Auto-load selected text when popup opens ─────────────────────────────────
 
