@@ -24,3 +24,5 @@ build/
 # Environment files
 .env
 .env.*
+
+.agent/
