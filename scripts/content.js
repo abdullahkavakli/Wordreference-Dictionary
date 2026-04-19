@@ -426,7 +426,8 @@
     if (!popupCanRender(popup, token)) return;
     setContentFavoriteButton(btn, true, isSaved);
 
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async event => {
+      if (!event.isTrusted) return;
       if (!favoritesApi || !candidate) return;
       btn.disabled = true;
       setContentFavoriteStatus(statusEl, 'Saving...');
@@ -730,6 +731,7 @@
   }
 
   document.addEventListener('dblclick', event => {
+    if (!event.isTrusted) return;
     if (!matchesModifier(event)) return;
     const sourceTarget = event.target;
     const immediateTerm = getSelectionText(sourceTarget);
@@ -742,6 +744,7 @@
   });
 
   document.addEventListener('keydown', event => {
+    if (!event.isTrusted) return;
     if (!event.key) return;  // guard against synthetic/IME events with no key
     if (event.key === 'Escape') {
       removePopup();

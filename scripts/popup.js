@@ -711,7 +711,8 @@ document.getElementById('wr-logo').addEventListener('click', () => {
 });
 
 if (favoriteBtnEl) {
-  favoriteBtnEl.addEventListener('click', async () => {
+  favoriteBtnEl.addEventListener('click', async event => {
+    if (!event.isTrusted) return;
     if (!_lastFavoriteCandidate || !window.WRFavorites) return;
 
     favoriteBtnEl.disabled = true;
