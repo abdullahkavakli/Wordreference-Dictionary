@@ -53,6 +53,96 @@
       font-size: 13px;
     }
 
+    .favorites-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .favorites-actions button {
+      border: 1px solid #15437e;
+      background: #15437e;
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .favorites-actions button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .favorites-actions .secondary {
+      background: #fff;
+      color: #15437e;
+    }
+
+    #favorites-status {
+      color: #2e7d32;
+      display: none;
+      font-size: 13px;
+    }
+
+    .favorites-list {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      max-height: 340px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .favorite-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .favorite-item:last-child {
+      border-bottom: none;
+    }
+
+    .favorite-head {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .favorite-word {
+      font-weight: 600;
+      color: #15437e;
+    }
+
+    .favorite-ipa {
+      font-style: italic;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .favorite-meta {
+      color: #777;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .favorite-delete {
+      border: 1px solid #c62828;
+      color: #c62828;
+      background: #fff;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
     footer {
       margin-top: 40px;
       font-size: 12px;
@@ -276,12 +366,24 @@
     <li>Native audio buttons and text-to-speech fallbacks for 18+ dialects and accents.</li>
   </ul>
 
+  <h2>Favorites</h2>
+  <p>Save favorites from the popup or in-page bubble. Favorites are stored locally on this device only.</p>
+  <div class="favorites-actions">
+    <button type="button" id="favorites-export-btn">Export to Excel (.xlsx)</button>
+    <button type="button" id="favorites-clear-btn" class="secondary">Clear all favorites</button>
+    <span id="favorites-status">Saved.</span>
+  </div>
+  <p id="favorites-count" style="font-size:13px;color:#666;margin:4px 0 8px 0">No favorites yet.</p>
+  <div id="favorites-list" class="favorites-list"></div>
+
   <footer>
     <p>WordReference Dictionary Chrome Extension &mdash; v1.5.0</p>
     <p>&copy; 2026 Abdullah Kavakli. All rights reserved. Commercial use requires payment.</p>
     <p><a href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer">wordreference.com</a></p>
   </footer>
 
+  <script src="scripts/favorites.js"></script>
+  <script src="scripts/xlsx.full.min.js"></script>
   <script src="scripts/options.js"></script>
 </body>
 
