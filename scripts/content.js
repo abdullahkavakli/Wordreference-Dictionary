@@ -176,47 +176,57 @@
       #${POPUP_ID} {
         position: absolute;
         z-index: 2147483647;
-        background: #fff;
-        color: #222;
-        border: 1px solid #c8d4e8;
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.16);
-        padding: 10px 14px;
+        background: #fefcf8;
+        color: #1f2933;
+        border: 1px solid #d8cfbe;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(31, 41, 51, .18);
+        padding: 10px 12px;
         min-width: 260px;
         max-width: 380px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
         font-size: 13px;
         line-height: 1.4;
       }
       #${POPUP_ID} .wr-hd {
         font-weight: 700;
-        color: #15437e;
+        color: #6f4e37;
         margin-bottom: 6px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
       }
       #${POPUP_ID} .wr-hd a {
         font-size: 11px;
-        color: #1a73e8;
+        color: #6f4e37;
         text-decoration: none;
-        font-weight: 400;
+        font-weight: 600;
       }
-      #${POPUP_ID} .wr-hd a:hover { text-decoration: underline; }
+      #${POPUP_ID} .wr-hd a:hover {
+        color: #533729;
+        text-decoration: underline;
+      }
       #${POPUP_ID} .wr-actions {
         display: flex;
         align-items: center;
         gap: 8px;
       }
       #${POPUP_ID} .wr-fav-btn {
-        border: 1px solid #15437e;
-        color: #15437e;
-        background: #fff;
-        border-radius: 4px;
+        border: 1px solid #6f4e37;
+        color: #6f4e37;
+        background: #fefcf8;
+        border-radius: 6px;
         font-size: 18px;
         line-height: 1;
         padding: 1px 6px;
         cursor: pointer;
+        transition: transform .12s ease, color .15s ease, border-color .15s ease;
+      }
+      #${POPUP_ID} .wr-fav-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        color: #8a5f42;
+        border-color: #8a5f42;
       }
       #${POPUP_ID} .wr-fav-btn:disabled {
         opacity: 0.65;
@@ -231,17 +241,25 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 4px 10px;
-        padding: 3px 0;
-        border-top: 1px solid #f0f0f0;
+        padding: 5px 0;
+        border-top: 1px solid #e7dece;
       }
       #${POPUP_ID} .wr-row:first-of-type { border-top: none; }
       #${POPUP_ID} .wr-from { font-weight: 600; }
-      #${POPUP_ID} .wr-pos  { font-size: 11px; color: #888; }
+      #${POPUP_ID} .wr-pos  { font-size: 11px; color: #6a7480; }
       #${POPUP_ID} .wr-err  { color: #b00020; }
-      #${POPUP_ID} .wr-load { color: #555; }
-      #${POPUP_ID} .wr-more { display:block; margin-top:6px; font-size:11px; color:#1a73e8; text-decoration:none; }
-      #${POPUP_ID} .wr-more:hover { text-decoration:underline; }
-      #${POPUP_ID} .wr-ipa { font-size: 12px; color: #666; font-style: italic; font-weight: 400; margin-left: 4px; }
+      #${POPUP_ID} .wr-load { color: #6a7480; }
+      #${POPUP_ID} .wr-more { display:block; margin-top:6px; font-size:11px; color:#6f4e37; text-decoration:none; font-weight:600; }
+      #${POPUP_ID} .wr-more:hover { color:#533729; text-decoration:underline; }
+      #${POPUP_ID} .wr-ipa { font-size: 12px; color: #6a7480; font-style: italic; font-weight: 400; margin-left: 4px; }
+      #${POPUP_ID} .wr-def-row {
+        display: block;
+        padding: 5px 0;
+        border-top: 1px solid #e7dece;
+      }
+      #${POPUP_ID} .wr-def-row:first-of-type { border-top: none; }
+      #${POPUP_ID} .wr-def-index { color: #6a7480; font-size: 11px; margin-right: 4px; }
+      #${POPUP_ID} .wr-def-example { display: block; margin-top: 2px; }
     `;
     document.head.appendChild(style);
   }
@@ -660,10 +678,10 @@
           </div>
           <div class="wr-fav-status" aria-live="polite"></div>
           ${displayDefs.map((d, i) => `
-            <div class="wr-row" style="display:block;padding:3px 0;border-top:1px solid #f0f0f0">
-              <span style="color:#888;font-size:11px">${i + 1}.</span>
+            <div class="wr-def-row">
+              <span class="wr-def-index">${i + 1}.</span>
               ${escapeHtml(d.text)}
-              ${d.example ? `<span class="wr-pos">${escapeHtml(d.example)}</span>` : ''}
+              ${d.example ? `<span class="wr-pos wr-def-example">${escapeHtml(d.example)}</span>` : ''}
             </div>`).join('')}
           ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${defs.length} definitions on WordReference.com…</a>` : ''}
         `;
