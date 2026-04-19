@@ -17,6 +17,7 @@
   function buildFavoritesApiFallback() {
     const STORAGE_KEY = 'favorites';
     const SCHEMA_VERSION = 1;
+    const MAX_FAVORITES = 5000;
 
     function normalizeWord(word) {
       return String(word || '').trim().toLowerCase();
@@ -96,6 +97,8 @@
         seen.add(item.id);
         deduped.push(item);
       }
+      deduped.sort((a, b) => b.createdAt - a.createdAt);
+      if (deduped.length > MAX_FAVORITES) deduped.length = MAX_FAVORITES;
       store.items = deduped;
       return store;
     }
@@ -116,6 +119,9 @@
       const existing = store.items.find(entry => entry.id === item.id);
       if (existing) return { added: false, item: existing };
       store.items.unshift(item);
+      if (store.items.length > MAX_FAVORITES) {
+        store.items.length = MAX_FAVORITES;
+      }
       await writeStore(store);
       return { added: true, item };
     }

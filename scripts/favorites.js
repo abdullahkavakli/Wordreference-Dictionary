@@ -7,6 +7,7 @@
 
   const STORAGE_KEY = 'favorites';
   const SCHEMA_VERSION = 1;
+  const MAX_FAVORITES = 5000;
 
   function normalizeWord(word) {
     return String(word || '').trim().toLowerCase();
@@ -106,6 +107,11 @@
 
     deduped.sort((a, b) => b.createdAt - a.createdAt);
 
+    if (deduped.length > MAX_FAVORITES) {
+      deduped.length = MAX_FAVORITES;
+      needsWrite = true;
+    }
+
     if (deduped.length !== store.items.length) {
       needsWrite = true;
     }
@@ -153,6 +159,9 @@
     }
 
     store.items.unshift(item);
+    if (store.items.length > MAX_FAVORITES) {
+      store.items.length = MAX_FAVORITES;
+    }
     await writeStore(store);
     return { added: true, item };
   }
@@ -177,6 +186,7 @@
   window.WRFavorites = {
     STORAGE_KEY,
     SCHEMA_VERSION,
+    MAX_FAVORITES,
     makeFavoriteId,
     listFavorites,
     isFavorite,
