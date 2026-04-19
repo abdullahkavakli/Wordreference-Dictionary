@@ -14,6 +14,121 @@
   const FETCH_RETRIES = 4;
   const FETCH_BACKOFF_MS = 300;
 
+  function buildFavoritesApiFallback() {
+    const STORAGE_KEY = 'favorites';
+    const SCHEMA_VERSION = 1;
+
+    function normalizeWord(word) {
+      return String(word || '').trim().toLowerCase();
+    }
+
+    function normalizeDir(dir) {
+      return String(dir || '').trim().toLowerCase();
+    }
+
+    function makeFavoriteId(word, dir) {
+      return `${normalizeDir(dir)}::${normalizeWord(word)}`;
+    }
+
+    function storageGet(query) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.get(query, result => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve(result || {});
+        });
+      });
+    }
+
+    function storageSet(values) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.set(values, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve();
+        });
+      });
+    }
+
+    function normalizeItem(item) {
+      if (!item || typeof item !== 'object') return null;
+      const word = String(item.word || '').trim();
+      const dir = String(item.dir || '').trim();
+      if (!word || !dir) return null;
+      return {
+        id: item.id || makeFavoriteId(word, dir),
+        word,
+        ipa: String(item.ipa || '').trim(),
+        explanation: String(item.explanation || '').trim(),
+        dir,
+        langPair: String(item.langPair || '').trim(),
+        source: String(item.source || '').trim(),
+        url: String(item.url || '').trim(),
+        createdAt: Number(item.createdAt) || Date.now()
+      };
+    }
+
+    async function readStore() {
+      const defaults = { [STORAGE_KEY]: { schemaVersion: SCHEMA_VERSION, items: [] } };
+      const result = await storageGet(defaults);
+      let store = result[STORAGE_KEY];
+
+      if (Array.isArray(store)) {
+        store = { schemaVersion: SCHEMA_VERSION, items: store };
+      }
+
+      if (!store || typeof store !== 'object') {
+        store = { schemaVersion: SCHEMA_VERSION, items: [] };
+      }
+
+      if (!Array.isArray(store.items)) store.items = [];
+      if (store.schemaVersion !== SCHEMA_VERSION) store.schemaVersion = SCHEMA_VERSION;
+
+      const deduped = [];
+      const seen = new Set();
+      for (const raw of store.items) {
+        const item = normalizeItem(raw);
+        if (!item || seen.has(item.id)) continue;
+        seen.add(item.id);
+        deduped.push(item);
+      }
+      store.items = deduped;
+      return store;
+    }
+
+    async function writeStore(store) {
+      await storageSet({ [STORAGE_KEY]: store });
+    }
+
+    async function isFavoriteId(id) {
+      const store = await readStore();
+      return store.items.some(item => item.id === id);
+    }
+
+    async function addFavorite(candidate) {
+      const item = normalizeItem(candidate);
+      if (!item) throw new Error('Invalid favorite data');
+      const store = await readStore();
+      const existing = store.items.find(entry => entry.id === item.id);
+      if (existing) return { added: false, item: existing };
+      store.items.unshift(item);
+      await writeStore(store);
+      return { added: true, item };
+    }
+
+    return {
+      makeFavoriteId,
+      isFavoriteId,
+      addFavorite
+    };
+  }
+
+  const favoritesApi = window.WRFavorites || buildFavoritesApiFallback();
+
   // ── Settings ────────────────────────────────────────────────────────────────
 
   const defaultSettings = {
@@ -82,6 +197,30 @@
         font-weight: 400;
       }
       #${POPUP_ID} .wr-hd a:hover { text-decoration: underline; }
+      #${POPUP_ID} .wr-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #${POPUP_ID} .wr-fav-btn {
+        border: 1px solid #15437e;
+        color: #15437e;
+        background: #fff;
+        border-radius: 4px;
+        font-size: 18px;
+        line-height: 1;
+        padding: 1px 6px;
+        cursor: pointer;
+      }
+      #${POPUP_ID} .wr-fav-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      #${POPUP_ID} .wr-fav-status {
+        font-size: 11px;
+        color: #2e7d32;
+        margin-bottom: 4px;
+      }
       #${POPUP_ID} .wr-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -176,6 +315,7 @@
     for (const row of table.querySelectorAll('tr')) {
       const frCell = row.querySelector('td.FrWrd');
       const toCell = row.querySelector('td.ToWrd');
+      const glossCell = row.querySelector('td.To2');
       if (!toCell) continue;
 
       const getWord = cell => {
@@ -190,16 +330,111 @@
 
       const toWord = getWord(toCell);
       const toPos = getPos(toCell);
+      const gloss = glossCell ? glossCell.textContent.replace(/[()]/g, '').trim() : '';
 
       if (frCell) {
         entry = { from: getWord(frCell), fromPos: getPos(frCell), translations: [] };
         rows.push(entry);
       }
       if (entry && toWord) {
-        entry.translations.push({ word: toWord, pos: toPos });
+        entry.translations.push({ word: toWord, pos: toPos, gloss });
       }
     }
     return rows;
+  }
+
+  function getFirstBilingualExplanation(rows) {
+    for (const entry of rows || []) {
+      for (const translation of (entry && entry.translations) || []) {
+        const gloss = String((translation && translation.gloss) || '').trim();
+        if (gloss) return gloss;
+        const word = String((translation && translation.word) || '').trim();
+        if (word) return word;
+      }
+    }
+    return '';
+  }
+
+  function getFirstDefinitionExplanation(defs) {
+    for (const def of defs || []) {
+      const text = String((def && def.text) || '').trim();
+      if (text) return text;
+    }
+    return '';
+  }
+
+  function buildContentFavoriteCandidate(term, dir, ipa, explanation) {
+    const word = String(term || '').trim();
+    if (!word || !dir) return null;
+    const id = favoritesApi.makeFavoriteId(word, dir);
+    return {
+      id,
+      word,
+      ipa: String(ipa || ''),
+      explanation: String(explanation || ''),
+      dir,
+      langPair: settings.langPair,
+      source: 'content',
+      url: `${WR_BASE}/${dir}/${encodeURIComponent(word)}`
+    };
+  }
+
+  function setContentFavoriteStatus(el, text, isError = false) {
+    if (!el) return;
+    el.style.color = isError ? '#b00020' : '#2e7d32';
+    el.textContent = text || '';
+  }
+
+  function setContentFavoriteButton(btn, enabled, isSaved) {
+    if (!btn) return;
+    if (!enabled) {
+      btn.disabled = true;
+      btn.textContent = '☆';
+      btn.title = 'Search first';
+      return;
+    }
+
+    btn.disabled = !!isSaved;
+    btn.textContent = isSaved ? '★' : '☆';
+    btn.title = isSaved ? 'Already favorited' : 'Add to favorites';
+  }
+
+  async function wireContentFavorite(popup, token, candidate) {
+    const btn = popup.querySelector('.wr-fav-btn');
+    const statusEl = popup.querySelector('.wr-fav-status');
+    if (!btn) return;
+
+    if (!candidate || !favoritesApi) {
+      setContentFavoriteButton(btn, false, false);
+      setContentFavoriteStatus(statusEl, '');
+      return;
+    }
+
+    let isSaved = false;
+    try {
+      isSaved = await favoritesApi.isFavoriteId(candidate.id);
+    } catch (_) {
+      isSaved = false;
+    }
+
+    if (!popupCanRender(popup, token)) return;
+    setContentFavoriteButton(btn, true, isSaved);
+
+    btn.addEventListener('click', async () => {
+      if (!favoritesApi || !candidate) return;
+      btn.disabled = true;
+      setContentFavoriteStatus(statusEl, 'Saving...');
+      try {
+        const result = await favoritesApi.addFavorite(candidate);
+        if (!popupCanRender(popup, token)) return;
+        setContentFavoriteButton(btn, true, true);
+        setContentFavoriteStatus(statusEl, result && result.added ? 'Saved' : '');
+      } catch (_) {
+        if (!popupCanRender(popup, token)) return;
+        setContentFavoriteButton(btn, true, false);
+        setContentFavoriteStatus(statusEl, 'Save failed', true);
+      }
+    });
   }
 
   // ── English monolingual definition parser ─────────────────────────────────────
@@ -377,6 +612,8 @@
       const html = await fetchWRPage(url);
       if (!popupCanRender(popup, token)) return;
       const doc = new DOMParser().parseFromString(html, 'text/html');
+      const ipa = extractIPA(doc);
+      let favoriteCandidate = null;
 
       if (isMonolingual) {
         const defs = parseEnDef(doc);
@@ -393,8 +630,12 @@
         popup.innerHTML = `
           <div class="wr-hd">
             <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
-            <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+            <span class="wr-actions">
+              <button type="button" class="wr-fav-btn" aria-label="Add to favorites" title="Add to favorites">☆</button>
+              <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+            </span>
           </div>
+          <div class="wr-fav-status" aria-live="polite"></div>
           ${displayDefs.map((d, i) => `
             <div class="wr-row" style="display:block;padding:3px 0;border-top:1px solid #f0f0f0">
               <span style="color:#888;font-size:11px">${i + 1}.</span>
@@ -403,6 +644,7 @@
             </div>`).join('')}
           ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${defs.length} definitions on WordReference.com…</a>` : ''}
         `;
+        favoriteCandidate = buildContentFavoriteCandidate(term, dir, ipa, getFirstDefinitionExplanation(defs));
       } else {
         const rows = parseWR(doc);
 
@@ -420,8 +662,12 @@
         popup.innerHTML = `
           <div class="wr-hd">
             <span>${escapeHtml(term)}<span class="wr-ipa" id="wr-ipa-inline"></span></span>
-            <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+            <span class="wr-actions">
+              <button type="button" class="wr-fav-btn" aria-label="Add to favorites" title="Add to favorites">☆</button>
+              <a href="${url}" target="_blank" rel="noopener">Open WR ↗</a>
+            </span>
           </div>
+          <div class="wr-fav-status" aria-live="polite"></div>
           ${displayRows.map(e => `
             <div class="wr-row">
               <div class="wr-from">
@@ -436,12 +682,14 @@
             </div>`).join('')}
           ${hasMore ? `<a class="wr-more" href="${url}" target="_blank" rel="noopener">See all ${rows.length} results on WordReference.com…</a>` : ''}
         `;
+        favoriteCandidate = buildContentFavoriteCandidate(term, dir, ipa, getFirstBilingualExplanation(rows));
       }
+
+      await wireContentFavorite(popup, token, favoriteCandidate);
 
       // Extract IPA after browser has painted
       queueMicrotask(() => {
         if (!popupCanRender(popup, token)) return;
-        const ipa = extractIPA(doc);
         const ipaEl = document.getElementById('wr-ipa-inline');
         if (ipa && ipaEl) ipaEl.textContent = ipa;
       });
