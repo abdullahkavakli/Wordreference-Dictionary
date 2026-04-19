@@ -9,10 +9,12 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | Feature | How to use |
 |---|---|
 | **Popup search** | Click the WR toolbar icon. On normal pages, you can also press **Alt+Z** (customizable in options). |
-| **Auto direction** | WordReference auto-detects the word's language; you can manually switch with `forward / reverse` buttons in the popup (hidden in monolingual mode). |
+| **Auto direction** | WordReference direction is resolved automatically based on the selected dictionary language pair. |
 | **In-page bubble** | Select a word and use **Alt + double-click**, **Alt+Q** (page shortcut), or **Alt+X** (Chrome command shortcut). |
 | **Context menu** | Right-click selected text, then click *WordReference: …*. |
 | **TTS** | Click the pronunciation flag buttons in the popup (when available). |
+| **Favorites** | Save words from popup or in-page bubble; duplicates are blocked automatically. |
+| **Excel export** | Manage favorites on the settings page and export all favorites to `.xlsx` (Word, IPA, explanation). |
 | **Open in WR** | Click the WR logo in the popup to open full results on WordReference. |
 
 ## Chrome Web Store
@@ -58,9 +60,14 @@ wordreference/
 
 ## Privacy & permissions
 
-- The extension stores only user preferences (shortcuts, modifier, IPA dialect) in `chrome.storage.sync`.
+- The extension stores user preferences (shortcuts, modifier, IPA dialect) in `chrome.storage.sync`.
+- Favorites are stored locally on your device in `chrome.storage.local`.
 - It does not send user data to any custom backend.
 - Translation results are fetched directly from `wordreference.com`.
+
+## Third-party notices
+
+Excel export uses SheetJS Community Edition (`xlsx`). See `THIRD_PARTY_NOTICES.md`.
 
 ## License
 
