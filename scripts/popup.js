@@ -83,6 +83,16 @@ const favoriteStatusEl = document.getElementById('favorite-status');
 let _lastFavoriteCandidate = null;
 
 function getFirstBilingualExplanation(sections) {
+  const LANGUAGE_LABELS = new Set([
+    'english', 'ingilizce',
+    'turkish', 'turkce', 'türkçe',
+    'spanish', 'español', 'espanol',
+    'italian', 'italiano',
+    'portuguese', 'portugues', 'português',
+    'french', 'francais', 'français',
+    'german', 'deutsch'
+  ]);
+
   if (!sections) return '';
   for (const section of sections) {
     if (!section || !Array.isArray(section.entries)) continue;
@@ -93,6 +103,12 @@ function getFirstBilingualExplanation(sections) {
         const gloss = String(translation.gloss || '').trim();
         if (gloss) return gloss;
         const word = String(translation.word || '').trim();
+        if (!word) continue;
+        const normalized = word
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+        if (LANGUAGE_LABELS.has(normalized)) continue;
         if (word) return word;
       }
     }

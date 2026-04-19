@@ -350,12 +350,28 @@
   }
 
   function getFirstBilingualExplanation(rows) {
+    const LANGUAGE_LABELS = new Set([
+      'english', 'ingilizce',
+      'turkish', 'turkce', 'türkçe',
+      'spanish', 'español', 'espanol',
+      'italian', 'italiano',
+      'portuguese', 'portugues', 'português',
+      'french', 'francais', 'français',
+      'german', 'deutsch'
+    ]);
+
     for (const entry of rows || []) {
       for (const translation of (entry && entry.translations) || []) {
         const gloss = String((translation && translation.gloss) || '').trim();
         if (gloss) return gloss;
         const word = String((translation && translation.word) || '').trim();
-        if (word) return word;
+        if (!word) continue;
+        const normalized = word
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+        if (LANGUAGE_LABELS.has(normalized)) continue;
+        return word;
       }
     }
     return '';
