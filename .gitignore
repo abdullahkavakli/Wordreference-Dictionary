@@ -28,4 +28,5 @@ build/
 .agent/
 .cursor/
 .github/
+.ai/
 CLAUDE.md
