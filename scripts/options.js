@@ -161,12 +161,20 @@
   }
 
   function buildExportRows(items) {
+    function pickExplanation(item) {
+      return String(
+        item.explanation ||
+        item.definition ||
+        item.meaning ||
+        item.gloss ||
+        ''
+      ).trim();
+    }
+
     return items.map(item => ({
       Word: item.word || '',
       IPA: item.ipa || '',
-      Explanation: item.explanation || '',
-      Direction: getDirLabel(item.dir),
-      Added: formatDate(item.createdAt)
+      Explanation: pickExplanation(item)
     }));
   }
 
@@ -178,9 +186,7 @@
     ws['!cols'] = [
       { wch: 26 },
       { wch: 20 },
-      { wch: 60 },
-      { wch: 24 },
-      { wch: 24 }
+      { wch: 60 }
     ];
     window.XLSX.utils.book_append_sheet(wb, ws, 'Favorites');
 

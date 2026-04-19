@@ -52,11 +52,19 @@
     const dir = String(item.dir || '').trim();
     if (!word || !dir) return null;
 
+    const explanation = String(
+      item.explanation ||
+      item.definition ||
+      item.meaning ||
+      item.gloss ||
+      ''
+    ).trim();
+
     return {
       id: item.id || makeFavoriteId(word, dir),
       word,
       ipa: String(item.ipa || '').trim(),
-      explanation: String(item.explanation || '').trim(),
+      explanation,
       dir,
       langPair: String(item.langPair || '').trim(),
       source: String(item.source || '').trim(),
