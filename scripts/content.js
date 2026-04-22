@@ -232,6 +232,14 @@
         opacity: 0.65;
         cursor: not-allowed;
       }
+      #${POPUP_ID} .wr-fav-btn.is-saved {
+        color: #e8a000;
+        border-color: #e8a000;
+      }
+      #${POPUP_ID} .wr-fav-btn.is-saved:hover {
+        color: #b87000;
+        border-color: #b87000;
+      }
       #${POPUP_ID} .wr-fav-status {
         font-size: 11px;
         color: #2e7d32;
@@ -431,12 +439,16 @@
       btn.disabled = true;
       btn.textContent = '☆';
       btn.title = 'Search first';
+      btn.setAttribute('aria-label', 'Add to favorites');
+      btn.classList.remove('is-saved');
       return;
     }
 
-    btn.disabled = !!isSaved;
+    btn.disabled = false;
     btn.textContent = isSaved ? '★' : '☆';
-    btn.title = isSaved ? 'Already favorited' : 'Add to favorites';
+    btn.title = isSaved ? 'Remove from favorites' : 'Add to favorites';
+    btn.setAttribute('aria-label', isSaved ? 'Remove from favorites' : 'Add to favorites');
+    btn.classList.toggle('is-saved', !!isSaved);
   }
 
   async function wireContentFavorite(popup, token, candidate) {
@@ -463,17 +475,33 @@
     btn.addEventListener('click', async event => {
       if (!event.isTrusted) return;
       if (!favoritesApi || !candidate) return;
+      const wasSaved = btn.classList.contains('is-saved');
       btn.disabled = true;
-      setContentFavoriteStatus(statusEl, 'Saving...');
-      try {
-        const result = await favoritesApi.addFavorite(candidate);
-        if (!popupCanRender(popup, token)) return;
-        setContentFavoriteButton(btn, true, true);
-        setContentFavoriteStatus(statusEl, result && result.added ? 'Saved' : '');
-      } catch (_) {
-        if (!popupCanRender(popup, token)) return;
-        setContentFavoriteButton(btn, true, false);
-        setContentFavoriteStatus(statusEl, 'Save failed', true);
+
+      if (wasSaved) {
+        setContentFavoriteStatus(statusEl, 'Removing...');
+        try {
+          await favoritesApi.removeFavorite(candidate.id);
+          if (!popupCanRender(popup, token)) return;
+          setContentFavoriteButton(btn, true, false);
+          setContentFavoriteStatus(statusEl, 'Removed');
+        } catch (_) {
+          if (!popupCanRender(popup, token)) return;
+          setContentFavoriteButton(btn, true, true);
+          setContentFavoriteStatus(statusEl, 'Remove failed', true);
+        }
+      } else {
+        setContentFavoriteStatus(statusEl, 'Saving...');
+        try {
+          const result = await favoritesApi.addFavorite(candidate);
+          if (!popupCanRender(popup, token)) return;
+          setContentFavoriteButton(btn, true, true);
+          setContentFavoriteStatus(statusEl, result && result.added ? 'Saved' : '');
+        } catch (_) {
+          if (!popupCanRender(popup, token)) return;
+          setContentFavoriteButton(btn, true, false);
+          setContentFavoriteStatus(statusEl, 'Save failed', true);
+        }
       }
     });
   }
@@ -726,7 +754,7 @@
         favoriteCandidate = buildContentFavoriteCandidate(term, dir, ipa, getFirstBilingualExplanation(rows));
       }
 
-      await wireContentFavorite(popup, token, favoriteCandidate);
+      wireContentFavorite(popup, token, favoriteCandidate);
 
       // Extract IPA after browser has painted
       queueMicrotask(() => {

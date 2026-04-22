@@ -140,12 +140,16 @@ function setFavoriteButtonState(enabled, isSaved) {
     favoriteBtnEl.disabled = true;
     favoriteBtnEl.textContent = '☆';
     favoriteBtnEl.title = 'Search for a word first';
+    favoriteBtnEl.setAttribute('aria-label', 'Add to favorites');
+    favoriteBtnEl.classList.remove('is-saved');
     return;
   }
 
-  favoriteBtnEl.disabled = !!isSaved;
+  favoriteBtnEl.disabled = false;
   favoriteBtnEl.textContent = isSaved ? '★' : '☆';
-  favoriteBtnEl.title = isSaved ? 'Already favorited' : 'Add to favorites';
+  favoriteBtnEl.title = isSaved ? 'Remove from favorites' : 'Add to favorites';
+  favoriteBtnEl.setAttribute('aria-label', isSaved ? 'Remove from favorites' : 'Add to favorites');
+  favoriteBtnEl.classList.toggle('is-saved', !!isSaved);
 }
 
 function buildPopupFavoriteCandidate(word, dir, isMonolingual, sections, defSections, ipa) {
@@ -691,7 +695,7 @@ async function searchWR(rawStr) {
     _wrAudioFiles = extractWRAudioFiles(doc);
     document.getElementById('voice-tts').style.display = 'block';
     document.getElementById('ipa-inline').textContent = ipa || '';
-    await refreshPopupFavoriteButton(token);
+    refreshPopupFavoriteButton(token);
   } catch (_) {
     if (token !== _searchToken) return;
     notFound(str);
@@ -733,20 +737,29 @@ if (favoriteBtnEl) {
     if (!event.isTrusted) return;
     if (!_lastFavoriteCandidate || !window.WRFavorites) return;
 
+    const wasSaved = favoriteBtnEl.classList.contains('is-saved');
     favoriteBtnEl.disabled = true;
-    showFavoriteStatus('Saving...');
-    try {
-      const result = await window.WRFavorites.addFavorite(_lastFavoriteCandidate);
-      if (result && result.added) {
+
+    if (wasSaved) {
+      showFavoriteStatus('Removing...');
+      try {
+        await window.WRFavorites.removeFavorite(_lastFavoriteCandidate.id);
+        setFavoriteButtonState(true, false);
+        showFavoriteStatus('Removed');
+      } catch (_) {
         setFavoriteButtonState(true, true);
-        showFavoriteStatus('Saved');
-      } else {
-        setFavoriteButtonState(true, true);
-        showFavoriteStatus('');
+        showFavoriteStatus('Remove failed', true);
       }
-    } catch (_) {
-      setFavoriteButtonState(true, false);
-      showFavoriteStatus('Save failed', true);
+    } else {
+      showFavoriteStatus('Saving...');
+      try {
+        const result = await window.WRFavorites.addFavorite(_lastFavoriteCandidate);
+        setFavoriteButtonState(true, true);
+        showFavoriteStatus(result && result.added ? 'Saved' : '');
+      } catch (_) {
+        setFavoriteButtonState(true, false);
+        showFavoriteStatus('Save failed', true);
+      }
     }
   });
 }

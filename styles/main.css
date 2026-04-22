@@ -128,6 +128,14 @@ body {
   cursor: not-allowed;
 }
 
+.favorite-btn.is-saved {
+  color: #e8a000;
+}
+
+.favorite-btn.is-saved:hover {
+  color: #b87000;
+}
+
 .favorite-status {
   min-width: 56px;
   font-size: 11px;
