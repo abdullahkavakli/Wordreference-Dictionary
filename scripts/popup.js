@@ -517,7 +517,8 @@ function sanitize(str) {
   _lastFavoriteCandidate = null;
   setFavoriteButtonState(false, false);
   document.getElementsByClassName('inner-shadow')[0].style.backgroundColor = '#15437e';
-  $('.pie, .dot span').css('background-color', '#' + ((1 << 24) * Math.random() | 0).toString(16));
+  const loadingColor = '#' + ((1 << 24) * Math.random() | 0).toString(16).padStart(6, '0');
+  document.querySelectorAll('.pie, .dot span').forEach(el => { el.style.backgroundColor = loadingColor; });
   return str.trim();
 }
 
@@ -599,7 +600,8 @@ function renderResults(sections, str, dir) {
   // Clicking thead collapses/expands tbody
   content.querySelectorAll('table thead').forEach(thead => {
     thead.addEventListener('click', () => {
-      $(thead).closest('table').find('tbody').fadeToggle('fast');
+      const tbody = thead.closest('table').querySelector('tbody');
+      if (tbody) tbody.hidden = !tbody.hidden;
     });
   });
 }
