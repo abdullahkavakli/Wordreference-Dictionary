@@ -9,6 +9,13 @@
   const SCHEMA_VERSION = 1;
   const MAX_FAVORITES = 5000;
 
+  let _opQueue = Promise.resolve();
+  function _serialized(fn) {
+    const next = _opQueue.then(fn);
+    _opQueue = next.catch(() => {});
+    return next;
+  }
+
   function normalizeWord(word) {
     return String(word || '').trim().toLowerCase();
   }
@@ -156,39 +163,45 @@
     return store.items.some(item => item.id === id);
   }
 
-  async function addFavorite(candidate) {
-    const item = normalizeItem(candidate);
-    if (!item) throw new Error('Invalid favorite data');
+  function addFavorite(candidate) {
+    return _serialized(async () => {
+      const item = normalizeItem(candidate);
+      if (!item) throw new Error('Invalid favorite data');
 
-    const store = await readStore();
-    const existing = store.items.find(entry => entry.id === item.id);
-    if (existing) {
-      return { added: false, item: existing };
-    }
+      const store = await readStore();
+      const existing = store.items.find(entry => entry.id === item.id);
+      if (existing) {
+        return { added: false, item: existing };
+      }
 
-    store.items.unshift(item);
-    if (store.items.length > MAX_FAVORITES) {
-      store.items.length = MAX_FAVORITES;
-    }
-    await writeStore(store);
-    return { added: true, item };
+      store.items.unshift(item);
+      if (store.items.length > MAX_FAVORITES) {
+        store.items.length = MAX_FAVORITES;
+      }
+      await writeStore(store);
+      return { added: true, item };
+    });
   }
 
-  async function removeFavorite(id) {
-    const store = await readStore();
-    const nextItems = store.items.filter(item => item.id !== id);
-    if (nextItems.length === store.items.length) return false;
-    store.items = nextItems;
-    await writeStore(store);
-    return true;
+  function removeFavorite(id) {
+    return _serialized(async () => {
+      const store = await readStore();
+      const nextItems = store.items.filter(item => item.id !== id);
+      if (nextItems.length === store.items.length) return false;
+      store.items = nextItems;
+      await writeStore(store);
+      return true;
+    });
   }
 
-  async function clearFavorites() {
-    const store = await readStore();
-    if (store.items.length === 0) return false;
-    store.items = [];
-    await writeStore(store);
-    return true;
+  function clearFavorites() {
+    return _serialized(async () => {
+      const store = await readStore();
+      if (store.items.length === 0) return false;
+      store.items = [];
+      await writeStore(store);
+      return true;
+    });
   }
 
   window.WRFavorites = {
