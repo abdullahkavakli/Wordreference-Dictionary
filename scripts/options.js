@@ -178,7 +178,16 @@
     }));
   }
 
-  function downloadFavoritesAsXlsx(items) {
+  async function downloadFavoritesAsXlsx(items) {
+    if (!window.XLSX) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = chrome.runtime.getURL('scripts/xlsx.full.min.js');
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Failed to load XLSX library'));
+        document.head.appendChild(s);
+      });
+    }
     if (!window.XLSX) throw new Error('XLSX library unavailable');
     const rows = buildExportRows(items);
     const wb = window.XLSX.utils.book_new();
@@ -342,7 +351,7 @@
           return;
         }
 
-        downloadFavoritesAsXlsx(favoritesCache);
+        await downloadFavoritesAsXlsx(favoritesCache);
         showFavoritesStatus('Excel exported');
       } catch (_) {
         showFavoritesStatus('Export failed', true);
