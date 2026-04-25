@@ -1,0 +1,12 @@
+{
+  "name": "wordreference-dictionary",
+  "version": "2.3.0",
+  "private": true,
+  "description": "Local-only dev manifest — used to run unit tests against the favorites and parser modules. The shipped extension does not consume this file.",
+  "scripts": {
+    "test": "node --test tests/"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}
