@@ -121,5 +121,66 @@
   },
   "pdfViewerPageLabel": {
     "message": "Sayfa numarası"
+  },
+
+  "optionsTitle": {
+    "message": "WordReference Sözlük"
+  },
+  "optionsLede": {
+    "message": "WordReference.com tabanlı çok dilli sözlük."
+  },
+  "optionsHowToTrigger": {
+    "message": "Bir kelime seçip Alt + çift tıklama, Alt+Q (sayfa kısayolu) veya Alt+X (Chrome komut kısayolu) ile arayın."
+  },
+  "optionsSaved": {
+    "message": "Kaydedildi."
+  },
+  "optionsSectionQuickStart": {
+    "message": "Hızlı başlangıç"
+  },
+  "optionsSectionPopupTrigger": {
+    "message": "Sayfa içi balon tetikleyicisi"
+  },
+  "optionsSectionIPA": {
+    "message": "IPA telaffuzu"
+  },
+  "optionsSectionLangPair": {
+    "message": "Dil çifti"
+  },
+  "optionsSectionSpanish": {
+    "message": "İspanyolca telaffuzu"
+  },
+  "optionsSectionPortuguese": {
+    "message": "Portekizce telaffuzu"
+  },
+  "optionsSectionShortcuts": {
+    "message": "Klavye kısayolları"
+  },
+  "optionsSectionFeatures": {
+    "message": "Özellikler"
+  },
+  "optionsSectionPDF": {
+    "message": "PDF desteği (deneysel)"
+  },
+  "optionsSectionFavorites": {
+    "message": "Favoriler"
+  },
+  "optionsFavoritesIntro": {
+    "message": "Pencere veya sayfa içi balondan favorileri kaydedin. Favoriler yalnızca bu cihazda yerel olarak saklanır."
+  },
+  "optionsFavoritesExport": {
+    "message": "Excel'e aktar (.xlsx)"
+  },
+  "optionsFavoritesClear": {
+    "message": "Tüm favorileri temizle"
+  },
+  "optionsFavoritesEmpty": {
+    "message": "Henüz favori yok."
+  },
+  "optionsPdfToggleLabel": {
+    "message": "PDF'leri WordReference görüntüleyicide aç"
+  },
+  "optionsPdfToggleHelp": {
+    "message": "PDF dosyalarının içinde Alt + çift tıklama, Alt + X ve Alt + Q ile kelime aramanızı sağlar. PDF'leri Mozilla PDF.js ile yerel olarak görüntüler — belge içeriği tarayıcınızdan çıkmaz."
   }
 }

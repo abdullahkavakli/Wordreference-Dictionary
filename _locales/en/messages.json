@@ -132,5 +132,66 @@
   },
   "pdfViewerPageLabel": {
     "message": "Page number"
+  },
+
+  "optionsTitle": {
+    "message": "WordReference Dictionary"
+  },
+  "optionsLede": {
+    "message": "Multi-language dictionary powered by WordReference.com."
+  },
+  "optionsHowToTrigger": {
+    "message": "Select a word and use Alt + double-click, Alt+Q (page shortcut), or Alt+X (Chrome command shortcut)."
+  },
+  "optionsSaved": {
+    "message": "Saved."
+  },
+  "optionsSectionQuickStart": {
+    "message": "Quick start"
+  },
+  "optionsSectionPopupTrigger": {
+    "message": "In-page popup trigger"
+  },
+  "optionsSectionIPA": {
+    "message": "IPA pronunciation"
+  },
+  "optionsSectionLangPair": {
+    "message": "Language pair"
+  },
+  "optionsSectionSpanish": {
+    "message": "Spanish pronunciation"
+  },
+  "optionsSectionPortuguese": {
+    "message": "Portuguese pronunciation"
+  },
+  "optionsSectionShortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "optionsSectionFeatures": {
+    "message": "Features"
+  },
+  "optionsSectionPDF": {
+    "message": "PDF support (experimental)"
+  },
+  "optionsSectionFavorites": {
+    "message": "Favorites"
+  },
+  "optionsFavoritesIntro": {
+    "message": "Save favorites from the popup or in-page bubble. Favorites are stored locally on this device only."
+  },
+  "optionsFavoritesExport": {
+    "message": "Export to Excel (.xlsx)"
+  },
+  "optionsFavoritesClear": {
+    "message": "Clear all favorites"
+  },
+  "optionsFavoritesEmpty": {
+    "message": "No favorites yet."
+  },
+  "optionsPdfToggleLabel": {
+    "message": "Open PDFs in WordReference viewer"
+  },
+  "optionsPdfToggleHelp": {
+    "message": "Lets you use Alt + double-click, Alt + X, and Alt + Q to look up words inside PDF files. Renders PDFs locally with Mozilla PDF.js — no document content leaves your browser."
   }
 }
