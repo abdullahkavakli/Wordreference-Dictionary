@@ -25,9 +25,32 @@ build/
 .env
 .env.*
 
-.agent/
-.cursor/
-.github/
-.ai/
-.codex/
+# Coding-agent metadata (matches files and directories)
+.agent
+.agents
+.ai
+.aider
+.aider*
+.cline
+.claude
+.codex
+.continue
+.copilot
+.cursor
+.github
+.opencode
+.openai
+.roo
+.sourcegraph
+.windsurf
+.zed
+
+# Coding-agent project files
 CLAUDE.md
+AGENTS.md
+GEMINI.md
+CODEX.md
+.cursorrules
+.clinerules
+.windsurfrules
+.aider.conf.yml
