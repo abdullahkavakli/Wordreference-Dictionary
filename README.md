@@ -1,5 +1,7 @@
 # WordReference Dictionary – Chrome Extension
 
+[![tests](https://github.com/abdullahkavakli/Wordreference-Dictionary/actions/workflows/test.yml/badge.svg)](https://github.com/abdullahkavakli/Wordreference-Dictionary/actions/workflows/test.yml)
+
 A Chrome extension that brings **WordReference.com lookups for English ↔ multiple languages** and **English monolingual definitions** to your browser, modeled after the [Tureng Dictionary extension](https://chromewebstore.google.com/detail/tureng-dictionary/ihedienojfhdahpomfldoejaimefofff).
 
 Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, German, Dutch, Swedish, Arabic, Chinese, Russian, Greek, Polish, Romanian, Czech, Japanese, Korean, Icelandic, and English (monolingual).
