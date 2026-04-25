@@ -98,5 +98,39 @@
   },
   "welcomeDisclaimer": {
     "message": "Not affiliated with or endorsed by WordReference.com."
+  },
+
+  "pdfViewerTitle": {
+    "message": "WordReference PDF Viewer"
+  },
+  "pdfViewerLoading": {
+    "message": "Preparing PDF viewer…"
+  },
+  "pdfViewerHint": {
+    "message": "Alt + double-click · Alt + X · Alt + Q to look up a word"
+  },
+  "pdfViewerPrevPage": {
+    "message": "Previous page (PageUp)"
+  },
+  "pdfViewerNextPage": {
+    "message": "Next page (PageDown)"
+  },
+  "pdfViewerZoomIn": {
+    "message": "Zoom in"
+  },
+  "pdfViewerZoomOut": {
+    "message": "Zoom out"
+  },
+  "pdfViewerFitWidth": {
+    "message": "Fit to width"
+  },
+  "pdfViewerDownload": {
+    "message": "↓ Save"
+  },
+  "pdfViewerPrint": {
+    "message": "⎙ Print"
+  },
+  "pdfViewerPageLabel": {
+    "message": "Page number"
   }
 }

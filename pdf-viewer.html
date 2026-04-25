@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>WordReference PDF Viewer</title>
+  <title data-i18n="pdfViewerTitle">WordReference PDF Viewer</title>
   <style>
     :root {
       --wr-bg: #2b2723;
@@ -171,29 +171,30 @@
 
 <body>
   <div id="toolbar">
-    <span class="title" id="filename">Loading…</span>
+    <span class="title" id="filename">…</span>
     <span class="group">
-      <button id="prev-page" title="Previous page (PageUp)">↑</button>
-      <input type="number" id="page-input" min="1" value="1" aria-label="Page number">
+      <button id="prev-page" title="Previous page" data-i18n-title="pdfViewerPrevPage">↑</button>
+      <input type="number" id="page-input" min="1" value="1" aria-label="Page number" data-i18n-aria-label="pdfViewerPageLabel">
       <span class="badge" id="page-total">/ –</span>
-      <button id="next-page" title="Next page (PageDown)">↓</button>
+      <button id="next-page" title="Next page" data-i18n-title="pdfViewerNextPage">↓</button>
     </span>
     <span class="group">
-      <button id="zoom-out" title="Zoom out (−)">−</button>
+      <button id="zoom-out" title="Zoom out" data-i18n-title="pdfViewerZoomOut">−</button>
       <span class="badge" id="zoom-info">125%</span>
-      <button id="zoom-in" title="Zoom in (+)">+</button>
-      <button id="zoom-fit" title="Fit to width">⤢</button>
+      <button id="zoom-in" title="Zoom in" data-i18n-title="pdfViewerZoomIn">+</button>
+      <button id="zoom-fit" title="Fit to width" data-i18n-title="pdfViewerFitWidth">⤢</button>
     </span>
     <span class="group">
-      <button id="download-btn" title="Download PDF">↓ Save</button>
-      <button id="print-btn" title="Print">⎙ Print</button>
+      <button id="download-btn" data-i18n="pdfViewerDownload">↓ Save</button>
+      <button id="print-btn" data-i18n="pdfViewerPrint">⎙ Print</button>
     </span>
-    <span class="hint">Alt + double-click · Alt + X · Alt + Q to look up a word</span>
+    <span class="hint" data-i18n="pdfViewerHint">Alt + double-click · Alt + X · Alt + Q to look up a word</span>
   </div>
 
   <div id="pages"></div>
-  <div id="status">Preparing PDF viewer…</div>
+  <div id="status" data-i18n="pdfViewerLoading">Preparing PDF viewer…</div>
 
+  <script src="scripts/i18n.js"></script>
   <script type="module" src="scripts/pdf-viewer.js"></script>
 
   <!-- Load WR favorites + content script so Alt+X / Alt+Q / Alt+dblclick work over the rendered text layer -->

@@ -87,5 +87,39 @@
   },
   "welcomeDisclaimer": {
     "message": "WordReference.com ile bağlantılı veya onun tarafından onaylanmış değildir."
+  },
+
+  "pdfViewerTitle": {
+    "message": "WordReference PDF Görüntüleyici"
+  },
+  "pdfViewerLoading": {
+    "message": "PDF görüntüleyici hazırlanıyor…"
+  },
+  "pdfViewerHint": {
+    "message": "Alt + çift tıklama · Alt + X · Alt + Q kelime aramak için"
+  },
+  "pdfViewerPrevPage": {
+    "message": "Önceki sayfa (PageUp)"
+  },
+  "pdfViewerNextPage": {
+    "message": "Sonraki sayfa (PageDown)"
+  },
+  "pdfViewerZoomIn": {
+    "message": "Yakınlaştır"
+  },
+  "pdfViewerZoomOut": {
+    "message": "Uzaklaştır"
+  },
+  "pdfViewerFitWidth": {
+    "message": "Genişliğe sığdır"
+  },
+  "pdfViewerDownload": {
+    "message": "↓ Kaydet"
+  },
+  "pdfViewerPrint": {
+    "message": "⎙ Yazdır"
+  },
+  "pdfViewerPageLabel": {
+    "message": "Sayfa numarası"
   }
 }
