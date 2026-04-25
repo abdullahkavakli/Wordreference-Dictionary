@@ -16,6 +16,7 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | **Favorites** | Save words from popup or in-page bubble; duplicates are blocked automatically. |
 | **Excel export** | Manage favorites on the settings page and export all favorites to `.xlsx` (Word, IPA, explanation). |
 | **Open in WR** | Click the WR logo in the popup to open full results on WordReference. |
+| **PDF support** *(opt-in)* | Enable in settings to open PDFs in a built-in viewer where Alt + double-click / Alt+Q / Alt+X work over the rendered text. |
 
 ## Chrome Web Store
 
@@ -46,10 +47,16 @@ wordreference/
 ├── styles/
 │   ├── main.css        # incl. minimal Bootstrap-compatible shim
 │   └── loading.css
-└── images/
-    ├── AppIcon.png
-    ├── flag-*.png      # 19 language flag icons
-    └── voice-logo.png
+├── images/
+│   ├── AppIcon.png
+│   ├── icon-{16,32,48,128}.png
+│   ├── flag-*.png      # 19 language flag icons
+│   └── voice-logo.png
+├── _locales/
+│   └── en/messages.json
+├── welcome.html        # First-install onboarding
+├── pdf-viewer.html     # Opt-in PDF.js viewer (enable in settings)
+└── vendor/pdfjs/       # Mozilla PDF.js (Apache-2.0)
 ```
 
 ## Privacy & permissions
@@ -61,7 +68,8 @@ wordreference/
 
 ## Third-party notices
 
-Excel export uses SheetJS Community Edition (`xlsx`). See `THIRD_PARTY_NOTICES.md`.
+Excel export uses SheetJS Community Edition (`xlsx`). PDF rendering in the
+opt-in viewer uses Mozilla PDF.js. See `THIRD_PARTY_NOTICES.md`.
 
 ## License
 

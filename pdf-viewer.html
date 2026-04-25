@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>WordReference PDF Viewer</title>
+  <style>
+    :root {
+      --wr-bg: #2b2723;
+      --wr-page-bg: #fefcf8;
+      --wr-toolbar-bg: #1f1d1a;
+      --wr-toolbar-fg: #efe5d4;
+      --wr-accent: #d8b074;
+      --wr-line: #4a423a;
+      --wr-error: #ff6b6b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--wr-bg);
+      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+      color: var(--wr-toolbar-fg);
+    }
+
+    #toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      background: var(--wr-toolbar-bg);
+      border-bottom: 1px solid var(--wr-line);
+      font-size: 13px;
+    }
+
+    #toolbar .title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--wr-toolbar-fg);
+    }
+
+    #toolbar .group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #toolbar button {
+      background: transparent;
+      border: 1px solid var(--wr-line);
+      color: var(--wr-toolbar-fg);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #toolbar button:hover {
+      border-color: var(--wr-accent);
+      color: var(--wr-accent);
+    }
+
+    #toolbar .badge {
+      color: var(--wr-accent);
+      font-weight: 600;
+    }
+
+    #toolbar .hint {
+      color: #8c857b;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    #pages {
+      padding: 24px 0 64px;
+    }
+
+    .pdf-page {
+      position: relative;
+      margin: 0 auto 18px;
+      background: var(--wr-page-bg);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+
+    .pdf-page canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .pdf-page .textLayer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: 1;
+      line-height: 1;
+      color: transparent;
+    }
+
+    .pdf-page .textLayer > span,
+    .pdf-page .textLayer > br {
+      color: transparent;
+      position: absolute;
+      white-space: pre;
+      cursor: text;
+      transform-origin: 0% 0%;
+    }
+
+    .pdf-page .textLayer ::selection {
+      background: rgba(216, 176, 116, 0.45);
+      color: transparent;
+    }
+
+    #status {
+      max-width: 720px;
+      margin: 80px auto;
+      padding: 24px 32px;
+      background: var(--wr-toolbar-bg);
+      border: 1px solid var(--wr-line);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    #status.error {
+      border-color: var(--wr-error);
+      color: var(--wr-error);
+    }
+
+    #status a {
+      color: var(--wr-accent);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toolbar">
+    <span class="title" id="filename">Loading…</span>
+    <span class="group">
+      <span class="hint">Page</span>
+      <span class="badge" id="page-info">–</span>
+    </span>
+    <span class="group">
+      <button id="zoom-out" title="Zoom out">−</button>
+      <span class="badge" id="zoom-info">100%</span>
+      <button id="zoom-in" title="Zoom in">+</button>
+    </span>
+    <span class="hint">Alt + double-click · Alt + X · Alt + Q to look up a word</span>
+  </div>
+
+  <div id="pages"></div>
+  <div id="status">Preparing PDF viewer…</div>
+
+  <script type="module">
+    import * as pdfjsLib from './vendor/pdfjs/pdf.min.mjs';
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdfjs/pdf.worker.min.mjs');
+
+    const pagesEl = document.getElementById('pages');
+    const statusEl = document.getElementById('status');
+    const filenameEl = document.getElementById('filename');
+    const pageInfoEl = document.getElementById('page-info');
+    const zoomInfoEl = document.getElementById('zoom-info');
+
+    const params = new URLSearchParams(location.search);
+    const fileUrl = params.get('file');
+
+    if (!fileUrl) {
+      statusEl.classList.add('error');
+      statusEl.innerHTML = 'No PDF URL provided. Open a <code>.pdf</code> link in your browser to use this viewer.';
+    } else {
+      filenameEl.textContent = decodeURIComponent(fileUrl.split('/').pop().split('?')[0]) || 'PDF';
+      load(fileUrl);
+    }
+
+    let pdfDoc = null;
+    let zoom = 1.25;
+
+    async function load(url) {
+      try {
+        const task = pdfjsLib.getDocument({
+          url,
+          withCredentials: false,
+          isEvalSupported: false,
+          disableAutoFetch: false,
+          disableStream: false
+        });
+        pdfDoc = await task.promise;
+        statusEl.remove();
+        pageInfoEl.textContent = `1 / ${pdfDoc.numPages}`;
+        await renderAll();
+      } catch (err) {
+        statusEl.classList.add('error');
+        statusEl.innerHTML = `Could not open PDF.<br><small>${(err && err.message) || err}</small><br><br><a href="${url}" target="_blank">Open in original viewer</a>`;
+      }
+    }
+
+    async function renderAll() {
+      pagesEl.innerHTML = '';
+      for (let n = 1; n <= pdfDoc.numPages; n++) {
+        await renderPage(n);
+      }
+    }
+
+    async function renderPage(num) {
+      const page = await pdfDoc.getPage(num);
+      const viewport = page.getViewport({ scale: zoom * (window.devicePixelRatio || 1) });
+      const cssViewport = page.getViewport({ scale: zoom });
+
+      const wrap = document.createElement('div');
+      wrap.className = 'pdf-page';
+      wrap.style.width = `${cssViewport.width}px`;
+      wrap.style.height = `${cssViewport.height}px`;
+      wrap.dataset.page = num;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      wrap.appendChild(canvas);
+
+      const textLayerDiv = document.createElement('div');
+      textLayerDiv.className = 'textLayer';
+      wrap.appendChild(textLayerDiv);
+
+      pagesEl.appendChild(wrap);
+
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+      const textContent = await page.getTextContent();
+      const textLayer = new pdfjsLib.TextLayer({
+        textContentSource: textContent,
+        container: textLayerDiv,
+        viewport: cssViewport
+      });
+      await textLayer.render();
+    }
+
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      zoom = Math.min(3, zoom + 0.25);
+      zoomInfoEl.textContent = `${Math.round(zoom * 100)}%`;
+      if (pdfDoc) renderAll();
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      zoom = Math.max(0.5, zoom - 0.25);
+      zoomInfoEl.textContent = `${Math.round(zoom * 100)}%`;
+      if (pdfDoc) renderAll();
+    });
+
+    const obs = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        if (e.isIntersecting && pdfDoc) {
+          pageInfoEl.textContent = `${e.target.dataset.page} / ${pdfDoc.numPages}`;
+        }
+      }
+    }, { threshold: 0.5 });
+
+    new MutationObserver(records => {
+      for (const r of records) {
+        for (const node of r.addedNodes) {
+          if (node.classList && node.classList.contains('pdf-page')) obs.observe(node);
+        }
+      }
+    }).observe(pagesEl, { childList: true });
+  </script>
+
+  <!-- Load WR favorites + content script so Alt+X / Alt+Q / Alt+dblclick work over the rendered text layer -->
+  <script src="scripts/favorites.js"></script>
+  <script src="scripts/content.js"></script>
+</body>
+
+</html>

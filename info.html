@@ -447,6 +447,30 @@
   </ul>
   </div>
 
+  <h2>PDF support (experimental)</h2>
+  <div class="section-card">
+  <p>
+    <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+      <input type="checkbox" id="pdf-viewer-toggle" style="margin-top:4px">
+      <span>
+        <strong>Open PDFs in WordReference viewer</strong><br>
+        <small style="color:var(--wr-muted)">
+          Lets you use <strong>Alt + double-click</strong>, <strong>Alt + X</strong>, and
+          <strong>Alt + Q</strong> to look up words inside PDF files. Renders PDFs locally with
+          Mozilla PDF.js — no document content leaves your browser.
+        </small>
+      </span>
+    </label>
+    <span id="pdf-viewer-status" class="saved-status" style="display:block;margin-top:6px"></span>
+  </p>
+  <p class="attention-note" style="margin-top:10px;font-size:12px">
+    Enabling will request permission to read URLs on all sites — this is required to redirect
+    <code>.pdf</code> navigations into the built-in viewer. To also work on local PDF files,
+    enable <strong>Allow access to file URLs</strong> at
+    <code>chrome://extensions/?id=iejcondpdpcmgfiejidjbhcgloepemmd</code>.
+  </p>
+  </div>
+
   <h2>Favorites</h2>
   <div class="section-card">
   <p>Save favorites from the popup or in-page bubble. Favorites are stored locally on this device only.</p>
@@ -460,7 +484,7 @@
   </div>
 
   <footer>
-    <p>WordReference Dictionary Chrome Extension &mdash; v2.2.0</p>
+    <p>WordReference Dictionary Chrome Extension &mdash; v2.3.0</p>
     <p>&copy; 2026 Abdullah Kavakli. All rights reserved. Commercial use requires payment.</p>
     <p><a href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer">wordreference.com</a></p>
   </footer>

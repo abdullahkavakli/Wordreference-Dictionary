@@ -366,4 +366,69 @@
   });
 
   renderFavorites();
+
+  // ── PDF viewer toggle ────────────────────────────────────────────────────────
+
+  const pdfToggle = document.getElementById('pdf-viewer-toggle');
+  const pdfStatus = document.getElementById('pdf-viewer-status');
+
+  function showPdfStatus(text, isError) {
+    if (!pdfStatus) return;
+    pdfStatus.textContent = text || '';
+    pdfStatus.style.color = isError ? '#b00020' : 'var(--wr-positive)';
+    pdfStatus.style.display = text ? 'block' : 'none';
+    if (text && !isError) {
+      setTimeout(() => {
+        if (pdfStatus.textContent === text) pdfStatus.style.display = 'none';
+      }, 2400);
+    }
+  }
+
+  async function refreshPdfToggleState() {
+    if (!pdfToggle) return;
+    const { pdfViewerEnabled } = await chrome.storage.sync.get({ pdfViewerEnabled: false });
+    let granted = false;
+    try {
+      granted = await chrome.permissions.contains({
+        permissions: ['declarativeNetRequest'],
+        origins: ['<all_urls>']
+      });
+    } catch (_) { granted = false; }
+    pdfToggle.checked = !!pdfViewerEnabled && granted;
+  }
+
+  if (pdfToggle) {
+    refreshPdfToggleState();
+
+    pdfToggle.addEventListener('change', async () => {
+      if (pdfToggle.checked) {
+        showPdfStatus('Requesting permission…');
+        let granted = false;
+        try {
+          granted = await chrome.permissions.request({
+            permissions: ['declarativeNetRequest'],
+            origins: ['<all_urls>']
+          });
+        } catch (_) { granted = false; }
+
+        if (!granted) {
+          pdfToggle.checked = false;
+          showPdfStatus('Permission denied', true);
+          return;
+        }
+
+        await chrome.storage.sync.set({ pdfViewerEnabled: true });
+        showPdfStatus('PDF viewer enabled');
+      } else {
+        await chrome.storage.sync.set({ pdfViewerEnabled: false });
+        try {
+          await chrome.permissions.remove({
+            permissions: ['declarativeNetRequest'],
+            origins: ['<all_urls>']
+          });
+        } catch (_) { /* not all permissions are removable */ }
+        showPdfStatus('PDF viewer disabled');
+      }
+    });
+  }
 })();

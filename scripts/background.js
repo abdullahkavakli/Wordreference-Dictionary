@@ -163,4 +163,55 @@ let _bgLangPair = 'tr';
 chrome.storage.sync.get({ langPair: 'tr' }, res => _bgLangPair = res.langPair);
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.langPair) _bgLangPair = changes.langPair.newValue;
+  if (area === 'sync' && changes.pdfViewerEnabled) syncPdfViewerRule();
 });
+
+// ── Optional PDF viewer (declarativeNetRequest redirect) ─────────────────────
+
+const PDF_RULE_ID = 1001;
+
+async function hasPdfPermissions() {
+  try {
+    return await chrome.permissions.contains({
+      permissions: ['declarativeNetRequest'],
+      origins: ['<all_urls>']
+    });
+  } catch { return false; }
+}
+
+async function syncPdfViewerRule() {
+  const { pdfViewerEnabled } = await chrome.storage.sync.get({ pdfViewerEnabled: false });
+  const granted = await hasPdfPermissions();
+  const enable = !!pdfViewerEnabled && granted;
+
+  if (!chrome.declarativeNetRequest || !chrome.declarativeNetRequest.updateDynamicRules) return;
+
+  if (enable) {
+    const viewerUrl = chrome.runtime.getURL('pdf-viewer.html');
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [PDF_RULE_ID],
+      addRules: [{
+        id: PDF_RULE_ID,
+        priority: 1,
+        action: {
+          type: 'redirect',
+          redirect: { regexSubstitution: `${viewerUrl}?file=\\0` }
+        },
+        condition: {
+          regexFilter: '^https?://[^?#]*\\.pdf(\\?.*)?$',
+          resourceTypes: ['main_frame']
+        }
+      }]
+    });
+  } else {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [PDF_RULE_ID] });
+  }
+}
+
+if (chrome.permissions && chrome.permissions.onRemoved) {
+  chrome.permissions.onRemoved.addListener(syncPdfViewerRule);
+  chrome.permissions.onAdded.addListener(syncPdfViewerRule);
+}
+
+chrome.runtime.onStartup.addListener(syncPdfViewerRule);
+chrome.runtime.onInstalled.addListener(syncPdfViewerRule);

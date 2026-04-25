@@ -6,7 +6,7 @@
    "name": "__MSG_extName__",
    "short_name": "__MSG_extShortName__",
    "description": "__MSG_extDescription__",
-   "version": "2.2.0",
+   "version": "2.3.0",
 
    "action": {
       "default_icon": {
@@ -26,11 +26,20 @@
    },
 
    "permissions": [ "activeTab", "contextMenus", "scripting", "storage", "tts" ],
+   "optional_permissions": [ "declarativeNetRequest" ],
    "host_permissions": [ "https://www.wordreference.com/*" ],
+   "optional_host_permissions": [ "<all_urls>" ],
 
    "content_security_policy": {
-      "extension_pages": "script-src 'self'; object-src 'self'"
+      "extension_pages": "script-src 'self'; object-src 'self'; worker-src 'self'"
    },
+
+   "web_accessible_resources": [
+      {
+         "resources": [ "pdf-viewer.html", "vendor/pdfjs/*" ],
+         "matches": [ "<all_urls>" ]
+      }
+   ],
 
    "background": {
       "service_worker": "scripts/background.js"
