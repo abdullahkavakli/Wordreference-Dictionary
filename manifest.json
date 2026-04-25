@@ -25,8 +25,7 @@
       "128": "images/icon-128.png"
    },
 
-   "permissions": [ "activeTab", "contextMenus", "scripting", "storage", "tts" ],
-   "optional_permissions": [ "declarativeNetRequest" ],
+   "permissions": [ "activeTab", "contextMenus", "scripting", "storage", "tts", "declarativeNetRequestWithHostAccess" ],
    "host_permissions": [ "https://www.wordreference.com/*" ],
    "optional_host_permissions": [ "<all_urls>" ],
 

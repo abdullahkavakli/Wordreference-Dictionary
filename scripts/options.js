@@ -389,10 +389,7 @@
     const { pdfViewerEnabled } = await chrome.storage.sync.get({ pdfViewerEnabled: false });
     let granted = false;
     try {
-      granted = await chrome.permissions.contains({
-        permissions: ['declarativeNetRequest'],
-        origins: ['<all_urls>']
-      });
+      granted = await chrome.permissions.contains({ origins: ['<all_urls>'] });
     } catch (_) { granted = false; }
     pdfToggle.checked = !!pdfViewerEnabled && granted;
   }
@@ -404,16 +401,15 @@
       if (pdfToggle.checked) {
         showPdfStatus('Requesting permission…');
         let granted = false;
+        let errMsg = '';
         try {
-          granted = await chrome.permissions.request({
-            permissions: ['declarativeNetRequest'],
-            origins: ['<all_urls>']
-          });
-        } catch (_) { granted = false; }
+          granted = await chrome.permissions.request({ origins: ['<all_urls>'] });
+          if (!granted && chrome.runtime.lastError) errMsg = chrome.runtime.lastError.message;
+        } catch (e) { errMsg = (e && e.message) || String(e); }
 
         if (!granted) {
           pdfToggle.checked = false;
-          showPdfStatus('Permission denied', true);
+          showPdfStatus(errMsg ? `Permission denied: ${errMsg}` : 'Permission denied', true);
           return;
         }
 
@@ -422,11 +418,8 @@
       } else {
         await chrome.storage.sync.set({ pdfViewerEnabled: false });
         try {
-          await chrome.permissions.remove({
-            permissions: ['declarativeNetRequest'],
-            origins: ['<all_urls>']
-          });
-        } catch (_) { /* not all permissions are removable */ }
+          await chrome.permissions.remove({ origins: ['<all_urls>'] });
+        } catch (_) { /* ignore */ }
         showPdfStatus('PDF viewer disabled');
       }
     });

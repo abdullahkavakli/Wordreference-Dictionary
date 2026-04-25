@@ -172,10 +172,7 @@ const PDF_RULE_ID = 1001;
 
 async function hasPdfPermissions() {
   try {
-    return await chrome.permissions.contains({
-      permissions: ['declarativeNetRequest'],
-      origins: ['<all_urls>']
-    });
+    return await chrome.permissions.contains({ origins: ['<all_urls>'] });
   } catch { return false; }
 }
 
