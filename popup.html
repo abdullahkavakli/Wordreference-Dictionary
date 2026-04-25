@@ -14,9 +14,9 @@
   <div class="text-center">
     <div id="form_div">
       <div class="input-row">
-        <label for="search-input" class="sr-only">Search WordReference</label>
+        <label for="search-input" class="sr-only" data-i18n="popupSearchLabel">Search WordReference</label>
         <input type="search" class="form-control" id="search-input" placeholder="Search WordReference…"
-          autocomplete="off" autofocus tabindex="1">
+          data-i18n-placeholder="popupSearchPlaceholder" autocomplete="off" autofocus tabindex="1">
         <button type="button" class="btn btn-primary" id="wr-btn">WR</button>
       </div>
     </div>
@@ -67,9 +67,10 @@
         id="flag-uk" src="images/flag-uk.png" alt="" class="flag flag-uk"></button>
     <span id="ipa-inline" class="wr-ipa-inline" aria-live="polite"></span>
     <button type="button" id="favorite-btn" class="icon-btn favorite-btn" aria-label="Add to favorites"
-      title="Add to favorites">☆</button>
+      title="Add to favorites" data-i18n-aria-label="popupAddFavorite" data-i18n-title="popupAddFavorite">☆</button>
     <span id="favorite-status" class="favorite-status" aria-live="polite"></span>
-    <button type="button" id="wr-logo-btn" class="icon-btn wr-logo-btn" aria-label="Open in WordReference"><img
+    <button type="button" id="wr-logo-btn" class="icon-btn wr-logo-btn" aria-label="Open in WordReference"
+        data-i18n-aria-label="popupOpenInWR"><img
         id="wr-logo" src="images/icon-128.png" alt="" class="wr-logo-img"></button>
   </div>
 
@@ -95,6 +96,7 @@
     </div>
   </div>
 
+  <script src="scripts/i18n.js"></script>
   <script src="scripts/favorites.js"></script>
   <script src="scripts/popup.js"></script>
 </body>

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Welcome to WordReference Dictionary</title>
+  <title data-i18n="welcomeTitle">Welcome to WordReference Dictionary</title>
   <style>
     :root {
       --wr-bg: #f3efe7;
@@ -193,54 +193,55 @@
     <header>
       <img src="images/icon-128.png" alt="">
       <div>
-        <h1>Welcome to WordReference Dictionary</h1>
-        <p class="tagline">Instant English ↔ 18-language lookups, powered by WordReference.com.</p>
+        <h1 data-i18n="welcomeTitle">Welcome to WordReference Dictionary</h1>
+        <p class="tagline" data-i18n="welcomeTagline">Instant English ↔ 18-language lookups, powered by WordReference.com.</p>
       </div>
     </header>
 
-    <h2>Quick start</h2>
+    <h2 data-i18n="welcomeSectionQuickStart">Quick start</h2>
 
     <div class="card">
-      <h3>1. Choose your language pair</h3>
-      <p>Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page.</p>
+      <h3 data-i18n="welcomeStep1Title">1. Choose your language pair</h3>
+      <p data-i18n="welcomeStep1Body">Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page.</p>
     </div>
 
     <div class="card">
-      <h3>2. Look up any word, anywhere</h3>
-      <p>Four ways to reach a translation, whichever fits your flow:</p>
+      <h3 data-i18n="welcomeStep2Title">2. Look up any word, anywhere</h3>
+      <p data-i18n="welcomeStep2Intro">Four ways to reach a translation, whichever fits your flow:</p>
       <div class="shortcut-grid">
         <span class="keys"><kbd>Alt</kbd> + <kbd>Z</kbd></span>
-        <span class="desc">Open the dictionary popup. Type or paste any word.</span>
+        <span class="desc" data-i18n="welcomeShortcutAltZ">Open the dictionary popup. Type or paste any word.</span>
 
         <span class="keys"><kbd>Alt</kbd> + <kbd>X</kbd></span>
-        <span class="desc">Select text on any web page, then press to show an in-page translation bubble.</span>
+        <span class="desc" data-i18n="welcomeShortcutAltX">Select text on any web page, then press to show an in-page translation bubble.</span>
 
         <span class="keys"><kbd>Alt</kbd> + <kbd>Q</kbd></span>
-        <span class="desc">Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken.</span>
+        <span class="desc" data-i18n="welcomeShortcutAltQ">Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken.</span>
 
         <span class="keys"><kbd>Alt</kbd> + double-click</span>
-        <span class="desc">Hold Alt and double-click a word to translate it right where it sits.</span>
+        <span class="desc" data-i18n="welcomeShortcutAltDblClick">Hold Alt and double-click a word to translate it right where it sits.</span>
 
         <span class="keys">Right-click</span>
-        <span class="desc">Select a word, right-click, then choose <em>WordReference: '…'</em> to open the full result in a new tab.</span>
+        <span class="desc" data-i18n="welcomeShortcutRightClick">Select a word, right-click, then choose <em>WordReference: '…'</em> to open the full result in a new tab.</span>
       </div>
     </div>
 
     <div class="card">
-      <h3>3. Save what you learn</h3>
-      <p>Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review.</p>
+      <h3 data-i18n="welcomeStep3Title">3. Save what you learn</h3>
+      <p data-i18n="welcomeStep3Body">Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review.</p>
     </div>
 
     <div class="cta-row">
-      <a class="btn btn-primary" href="info.html">Open Settings</a>
-      <a class="btn btn-secondary" href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer">Visit WordReference.com</a>
+      <a class="btn btn-primary" href="info.html" data-i18n="welcomeOpenSettings">Open Settings</a>
+      <a class="btn btn-secondary" href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer" data-i18n="welcomeVisitWR">Visit WordReference.com</a>
     </div>
 
     <footer>
-      <p>Not affiliated with or endorsed by WordReference.com.
+      <p><span data-i18n="welcomeDisclaimer">Not affiliated with or endorsed by WordReference.com.</span>
         &middot; <a href="https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd" target="_blank" rel="noopener noreferrer">Chrome Web Store</a></p>
     </footer>
   </main>
+  <script src="scripts/i18n.js"></script>
 </body>
 
 </html>

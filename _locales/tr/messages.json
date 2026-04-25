@@ -1,0 +1,91 @@
+{
+  "extName": {
+    "message": "WordReference Sözlük"
+  },
+  "extShortName": {
+    "message": "WR Sözlük"
+  },
+  "extDescription": {
+    "message": "WordReference Sözlük – İngilizce ↔ 18 dil (İspanyolca, Fransızca, Almanca, İtalyanca, Portekizce, Rusça, Çince, Japonca, vb.)"
+  },
+  "actionTitle": {
+    "message": "WordReference Sözlük"
+  },
+  "commandShowTranslationDescription": {
+    "message": "Seçili kelime için sayfa içi WordReference balonunu göster"
+  },
+  "commandQuickLookupDescription": {
+    "message": "Seçili kelimeyi hızlıca ara"
+  },
+
+  "popupSearchLabel": {
+    "message": "WordReference'da ara"
+  },
+  "popupSearchPlaceholder": {
+    "message": "WordReference'da ara…"
+  },
+  "popupAddFavorite": {
+    "message": "Favorilere ekle"
+  },
+  "popupOpenInWR": {
+    "message": "WordReference'da aç"
+  },
+  "popupFlagPronunciation": {
+    "message": "$LANG$ telaffuzunu çal",
+    "placeholders": {
+      "lang": { "content": "$1", "example": "Türkçe" }
+    }
+  },
+
+  "welcomeTitle": {
+    "message": "WordReference Sözlük'e hoş geldiniz"
+  },
+  "welcomeTagline": {
+    "message": "WordReference.com tabanlı, anında İngilizce ↔ 18 dil çeviri."
+  },
+  "welcomeSectionQuickStart": {
+    "message": "Hızlı başlangıç"
+  },
+  "welcomeStep1Title": {
+    "message": "1. Dil çiftinizi seçin"
+  },
+  "welcomeStep1Body": {
+    "message": "İngilizce'den çevirmek istediğiniz dili — Türkçe, İspanyolca, Fransızca, Almanca ve 14 diğeri — ayarlar sayfasından seçin."
+  },
+  "welcomeStep2Title": {
+    "message": "2. Her yerde, her kelimeyi arayın"
+  },
+  "welcomeStep2Intro": {
+    "message": "Çeviriye ulaşmanın size uygun dört yolu:"
+  },
+  "welcomeShortcutAltZ": {
+    "message": "Sözlük penceresini açın. Herhangi bir kelimeyi yazın veya yapıştırın."
+  },
+  "welcomeShortcutAltX": {
+    "message": "Bir web sayfasında metin seçip basın; sayfa içi çeviri balonu görünür."
+  },
+  "welcomeShortcutAltQ": {
+    "message": "Alt + X ile aynı; Alt + X kısayolu kullanılan klavye düzenleri için alternatif."
+  },
+  "welcomeShortcutAltDblClick": {
+    "message": "Alt'a basılı tutarak bir kelimeye çift tıklayın; çeviri yerinde açılır."
+  },
+  "welcomeShortcutRightClick": {
+    "message": "Bir kelime seçin, sağ tıklayın ve WordReference: '…' seçeneğini tıklayarak tam sonucu yeni sekmede açın."
+  },
+  "welcomeStep3Title": {
+    "message": "3. Öğrendiklerinizi kaydedin"
+  },
+  "welcomeStep3Body": {
+    "message": "Pencere veya sayfa içi balondan herhangi bir kelimeyi yıldızlayarak favorilerinize ekleyin. Listeyi ayarlar sayfasından yönetebilir ve Excel'e aktarabilirsiniz — kelime tekrarı için ideal."
+  },
+  "welcomeOpenSettings": {
+    "message": "Ayarları Aç"
+  },
+  "welcomeVisitWR": {
+    "message": "WordReference.com'u Ziyaret Et"
+  },
+  "welcomeDisclaimer": {
+    "message": "WordReference.com ile bağlantılı veya onun tarafından onaylanmış değildir."
+  }
+}

@@ -22,5 +22,81 @@
   "commandQuickLookupDescription": {
     "message": "Quick lookup of the selected word",
     "description": "Description for Alt+Q keyboard command"
+  },
+
+  "popupSearchLabel": {
+    "message": "Search WordReference",
+    "description": "Visually-hidden label for the popup search input"
+  },
+  "popupSearchPlaceholder": {
+    "message": "Search WordReference…",
+    "description": "Placeholder shown inside the popup search input"
+  },
+  "popupAddFavorite": {
+    "message": "Add to favorites",
+    "description": "Tooltip and aria-label for the favorite star when not yet saved"
+  },
+  "popupOpenInWR": {
+    "message": "Open in WordReference",
+    "description": "Aria-label for the WR logo button that opens the full WR results page"
+  },
+  "popupFlagPronunciation": {
+    "message": "Play $LANG$ pronunciation",
+    "description": "Aria-label template for each flag-shaped pronunciation button",
+    "placeholders": {
+      "lang": { "content": "$1", "example": "Turkish" }
+    }
+  },
+
+  "welcomeTitle": {
+    "message": "Welcome to WordReference Dictionary"
+  },
+  "welcomeTagline": {
+    "message": "Instant English ↔ 18-language lookups, powered by WordReference.com."
+  },
+  "welcomeSectionQuickStart": {
+    "message": "Quick start"
+  },
+  "welcomeStep1Title": {
+    "message": "1. Choose your language pair"
+  },
+  "welcomeStep1Body": {
+    "message": "Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page."
+  },
+  "welcomeStep2Title": {
+    "message": "2. Look up any word, anywhere"
+  },
+  "welcomeStep2Intro": {
+    "message": "Four ways to reach a translation, whichever fits your flow:"
+  },
+  "welcomeShortcutAltZ": {
+    "message": "Open the dictionary popup. Type or paste any word."
+  },
+  "welcomeShortcutAltX": {
+    "message": "Select text on any web page, then press to show an in-page translation bubble."
+  },
+  "welcomeShortcutAltQ": {
+    "message": "Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken."
+  },
+  "welcomeShortcutAltDblClick": {
+    "message": "Hold Alt and double-click a word to translate it right where it sits."
+  },
+  "welcomeShortcutRightClick": {
+    "message": "Select a word, right-click, then choose WordReference: '…' to open the full result in a new tab."
+  },
+  "welcomeStep3Title": {
+    "message": "3. Save what you learn"
+  },
+  "welcomeStep3Body": {
+    "message": "Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review."
+  },
+  "welcomeOpenSettings": {
+    "message": "Open Settings"
+  },
+  "welcomeVisitWR": {
+    "message": "Visit WordReference.com"
+  },
+  "welcomeDisclaimer": {
+    "message": "Not affiliated with or endorsed by WordReference.com."
   }
 }
