@@ -126,10 +126,20 @@
       return { added: true, item };
     }
 
+    async function removeFavorite(id) {
+      const store = await readStore();
+      const next = store.items.filter(item => item.id !== id);
+      if (next.length === store.items.length) return false;
+      store.items = next;
+      await writeStore(store);
+      return true;
+    }
+
     return {
       makeFavoriteId,
       isFavoriteId,
-      addFavorite
+      addFavorite,
+      removeFavorite
     };
   }
 

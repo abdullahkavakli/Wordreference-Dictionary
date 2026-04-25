@@ -61,7 +61,7 @@ chrome.commands.onCommand.addListener(async (command) => {
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ['scripts/content.js']
+      files: ['scripts/favorites.js', 'scripts/content.js']
     });
     await chrome.tabs.sendMessage(tab.id, { type: 'WR_SHOW_POPUP' });
     return;
