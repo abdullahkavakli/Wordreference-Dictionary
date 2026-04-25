@@ -1,0 +1,23 @@
+{
+  "extName": { "message": "WordReference Wörterbuch" },
+  "extShortName": { "message": "WR Wb." },
+  "extDescription": { "message": "WordReference Wörterbuch – Englisch ↔ 18 Sprachen (Spanisch, Französisch, Deutsch, Italienisch, Portugiesisch, Russisch, Chinesisch, Japanisch usw.)" },
+  "actionTitle": { "message": "WordReference Wörterbuch" },
+  "commandShowTranslationDescription": { "message": "WordReference-Übersetzungsblase für das ausgewählte Wort anzeigen" },
+  "commandQuickLookupDescription": { "message": "Schnellsuche für das ausgewählte Wort" },
+
+  "popupSearchLabel": { "message": "WordReference durchsuchen" },
+  "popupSearchPlaceholder": { "message": "WordReference durchsuchen…" },
+  "popupAddFavorite": { "message": "Zu Favoriten hinzufügen" },
+  "popupOpenInWR": { "message": "In WordReference öffnen" },
+
+  "welcomeTitle": { "message": "Willkommen bei WordReference Wörterbuch" },
+  "welcomeTagline": { "message": "Sofortige Englisch ↔ 18-Sprachen-Übersetzungen, betrieben von WordReference.com." },
+  "welcomeOpenSettings": { "message": "Einstellungen öffnen" },
+  "welcomeVisitWR": { "message": "WordReference.com besuchen" },
+
+  "optionsSaved": { "message": "Gespeichert." },
+  "optionsFavoritesEmpty": { "message": "Noch keine Favoriten." },
+  "optionsFavoritesExport": { "message": "Nach Excel exportieren (.xlsx)" },
+  "optionsFavoritesClear": { "message": "Alle Favoriten löschen" }
+}

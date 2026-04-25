@@ -1,0 +1,23 @@
+{
+  "extName": { "message": "WordReference Diccionario" },
+  "extShortName": { "message": "WR Dicc." },
+  "extDescription": { "message": "WordReference Diccionario – Inglés ↔ 18 idiomas (español, francés, alemán, italiano, portugués, ruso, chino, japonés, etc.)" },
+  "actionTitle": { "message": "WordReference Diccionario" },
+  "commandShowTranslationDescription": { "message": "Mostrar la burbuja de traducción de WordReference para la palabra seleccionada" },
+  "commandQuickLookupDescription": { "message": "Búsqueda rápida de la palabra seleccionada" },
+
+  "popupSearchLabel": { "message": "Buscar en WordReference" },
+  "popupSearchPlaceholder": { "message": "Buscar en WordReference…" },
+  "popupAddFavorite": { "message": "Añadir a favoritos" },
+  "popupOpenInWR": { "message": "Abrir en WordReference" },
+
+  "welcomeTitle": { "message": "Bienvenido a WordReference Diccionario" },
+  "welcomeTagline": { "message": "Búsquedas instantáneas inglés ↔ 18 idiomas, basadas en WordReference.com." },
+  "welcomeOpenSettings": { "message": "Abrir ajustes" },
+  "welcomeVisitWR": { "message": "Visitar WordReference.com" },
+
+  "optionsSaved": { "message": "Guardado." },
+  "optionsFavoritesEmpty": { "message": "Aún no hay favoritos." },
+  "optionsFavoritesExport": { "message": "Exportar a Excel (.xlsx)" },
+  "optionsFavoritesClear": { "message": "Borrar todos los favoritos" }
+}
