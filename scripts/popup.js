@@ -530,8 +530,7 @@ function notFound(str) {
   document.getElementById('content').innerHTML = `
     <div class="alert alert-warning" role="alert">
       <strong>No results found.</strong> Try a different spelling or
-      <a href="https://www.google.com/search?q=${encodeURIComponent(str)}" target="_blank" rel="noopener noreferrer">
-        <i class="fa fa-google" aria-hidden="true"></i>oogle it</a>.
+      <a href="https://www.google.com/search?q=${encodeURIComponent(str)}" target="_blank" rel="noopener noreferrer">Google it</a>.
     </div>`;
   document.getElementById('loading').style.display = 'none';
 }
@@ -713,16 +712,6 @@ document.getElementById('search-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchWR(document.getElementById('search-input').value);
 });
 
-// ─── Pronunciation audio (WordReference) ─────────────────────────────────────
-
-const allFlags = ['tr', 'es', 'it', 'pt', 'fr', 'de', 'nl', 'sv', 'ar', 'zh', 'ru', 'gr', 'pl', 'ro', 'cz', 'ja', 'ko', 'is', 'us', 'uk'];
-allFlags.forEach(lang => {
-  const btn = document.getElementById(`flag-${lang}`);
-  if (btn) {
-    btn.addEventListener('click', () => playWRAudio(lang));
-  }
-});
-
 // ─── WR logo → open in browser ───────────────────────────────────────────────
 
 document.getElementById('wr-logo').addEventListener('click', () => {
@@ -732,39 +721,56 @@ document.getElementById('wr-logo').addEventListener('click', () => {
   chrome.tabs.create({ url: `${WR_BASE}/${dir}/${encodeURIComponent(word)}` });
 });
 
-if (favoriteBtnEl) {
-  favoriteBtnEl.addEventListener('click', async event => {
-    if (!event.isTrusted) return;
-    if (!_lastFavoriteCandidate || !window.WRFavorites) return;
+// ─── Non-critical init — deferred to keep first paint fast ───────────────────
 
-    const wasSaved = favoriteBtnEl.classList.contains('is-saved');
-    favoriteBtnEl.disabled = true;
+const allFlags = ['tr', 'es', 'it', 'pt', 'fr', 'de', 'nl', 'sv', 'ar', 'zh', 'ru', 'gr', 'pl', 'ro', 'cz', 'ja', 'ko', 'is', 'us', 'uk'];
 
-    if (wasSaved) {
-      showFavoriteStatus('Removing...');
-      try {
-        await window.WRFavorites.removeFavorite(_lastFavoriteCandidate.id);
-        setFavoriteButtonState(true, false);
-        showFavoriteStatus('Removed');
-      } catch (_) {
-        setFavoriteButtonState(true, true);
-        showFavoriteStatus('Remove failed', true);
-      }
-    } else {
-      showFavoriteStatus('Saving...');
-      try {
-        const result = await window.WRFavorites.addFavorite(_lastFavoriteCandidate);
-        setFavoriteButtonState(true, true);
-        showFavoriteStatus(result && result.added ? 'Saved' : '');
-      } catch (_) {
-        setFavoriteButtonState(true, false);
-        showFavoriteStatus('Save failed', true);
-      }
-    }
+function _wrDeferredInit() {
+  allFlags.forEach(lang => {
+    const btn = document.getElementById(`flag-${lang}`);
+    if (btn) btn.addEventListener('click', () => playWRAudio(lang));
   });
+
+  if (favoriteBtnEl) {
+    favoriteBtnEl.addEventListener('click', async event => {
+      if (!event.isTrusted) return;
+      if (!_lastFavoriteCandidate || !window.WRFavorites) return;
+
+      const wasSaved = favoriteBtnEl.classList.contains('is-saved');
+      favoriteBtnEl.disabled = true;
+
+      if (wasSaved) {
+        showFavoriteStatus('Removing...');
+        try {
+          await window.WRFavorites.removeFavorite(_lastFavoriteCandidate.id);
+          setFavoriteButtonState(true, false);
+          showFavoriteStatus('Removed');
+        } catch (_) {
+          setFavoriteButtonState(true, true);
+          showFavoriteStatus('Remove failed', true);
+        }
+      } else {
+        showFavoriteStatus('Saving...');
+        try {
+          const result = await window.WRFavorites.addFavorite(_lastFavoriteCandidate);
+          setFavoriteButtonState(true, true);
+          showFavoriteStatus(result && result.added ? 'Saved' : '');
+        } catch (_) {
+          setFavoriteButtonState(true, false);
+          showFavoriteStatus('Save failed', true);
+        }
+      }
+    });
+  }
+
+  setFavoriteButtonState(false, false);
 }
 
-setFavoriteButtonState(false, false);
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(_wrDeferredInit, { timeout: 300 });
+} else {
+  setTimeout(_wrDeferredInit, 0);
+}
 
 // ─── Auto-load selected text when popup opens ─────────────────────────────────
 

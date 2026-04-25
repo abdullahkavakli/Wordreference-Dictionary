@@ -41,21 +41,15 @@ wordreference/
 │   ├── content.js      # In-page translation bubble
 │   ├── popup.js        # Popup search & rendering
 │   ├── options.js      # Settings page logic
-│   ├── jquery.min.js
-│   ├── bootstrap.min.js
-│   └── tether.min.js
+│   ├── favorites.js    # Favorites storage/management (chrome.storage.local)
+│   └── xlsx.full.min.js # SheetJS — lazy-loaded only on favorites export
 ├── styles/
-│   ├── main.css
-│   ├── loading.css
-│   ├── bootstrap.min.css
-│   └── font-awesome.min.css
-├── images/
-│   ├── AppIcon.png
-│   ├── flag-tr.png
-│   ├── flag-us.png
-│   ├── flag-uk.png
-│   └── voice-logo.png
-└── fonts/
+│   ├── main.css        # incl. minimal Bootstrap-compatible shim
+│   └── loading.css
+└── images/
+    ├── AppIcon.png
+    ├── flag-*.png      # 19 language flag icons
+    └── voice-logo.png
 ```
 
 ## Privacy & permissions
