@@ -1,0 +1,26 @@
+{
+  "extName": {
+    "message": "WordReference Dictionary",
+    "description": "Extension name shown in Chrome Web Store and toolbar tooltip"
+  },
+  "extShortName": {
+    "message": "WR Dict",
+    "description": "Short name used when the full name is too long"
+  },
+  "extDescription": {
+    "message": "WordReference Dictionary – English ↔ 18 languages (Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, etc.)",
+    "description": "Extension description shown in Chrome Web Store"
+  },
+  "actionTitle": {
+    "message": "WordReference Dictionary",
+    "description": "Toolbar icon hover tooltip"
+  },
+  "commandShowTranslationDescription": {
+    "message": "Show WordReference in-page popup for selected word",
+    "description": "Description for Alt+X keyboard command"
+  },
+  "commandQuickLookupDescription": {
+    "message": "Quick lookup of the selected word",
+    "description": "Description for Alt+Q keyboard command"
+  }
+}

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Welcome to WordReference Dictionary</title>
+  <style>
+    :root {
+      --wr-bg: #f3efe7;
+      --wr-paper: #fefcf8;
+      --wr-ink: #1f2933;
+      --wr-muted: #6a7480;
+      --wr-line: #d8cfbe;
+      --wr-accent: #6f4e37;
+      --wr-accent-strong: #533729;
+      --wr-highlight: #ede2cf;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 56px 24px 72px;
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      color: var(--wr-ink);
+      background:
+        radial-gradient(circle at 10% 0%, #ffffff 0%, transparent 42%),
+        radial-gradient(circle at 96% 6%, #efe5d4 0%, transparent 34%),
+        var(--wr-bg);
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    header img {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgb(111 78 55 / 18%);
+    }
+
+    h1 {
+      font-size: 32px;
+      color: var(--wr-accent);
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    .tagline {
+      font-size: 16px;
+      color: var(--wr-muted);
+      margin: 4px 0 36px;
+    }
+
+    h2 {
+      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+      font-size: 14px;
+      margin: 34px 0 14px;
+      color: var(--wr-accent-strong);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--wr-paper);
+      border: 1px solid var(--wr-line);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgb(111 78 55 / 6%);
+    }
+
+    .card h3 {
+      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+      font-size: 17px;
+      margin: 0 0 8px;
+      color: var(--wr-accent-strong);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--wr-ink);
+    }
+
+    .card p + p { margin-top: 8px; }
+
+    kbd {
+      display: inline-block;
+      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border: 1px solid var(--wr-line);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: var(--wr-highlight);
+      color: var(--wr-accent-strong);
+      letter-spacing: 0.03em;
+    }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px 18px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .shortcut-grid > .keys {
+      white-space: nowrap;
+    }
+
+    .shortcut-grid > .desc {
+      font-size: 15px;
+      color: var(--wr-ink);
+      line-height: 1.5;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .btn {
+      display: inline-block;
+      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-primary {
+      color: #fff8ef;
+      background: linear-gradient(135deg, var(--wr-accent), #7f624a);
+      box-shadow: 0 2px 6px rgb(111 78 55 / 24%);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgb(111 78 55 / 32%);
+    }
+
+    .btn-secondary {
+      color: var(--wr-accent-strong);
+      background: transparent;
+      border: 1px solid var(--wr-line);
+    }
+
+    .btn-secondary:hover {
+      background: var(--wr-paper);
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--wr-line);
+      font-size: 13px;
+      color: var(--wr-muted);
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--wr-accent);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <img src="images/icon-128.png" alt="">
+      <div>
+        <h1>Welcome to WordReference Dictionary</h1>
+        <p class="tagline">Instant English ↔ 18-language lookups, powered by WordReference.com.</p>
+      </div>
+    </header>
+
+    <h2>Quick start</h2>
+
+    <div class="card">
+      <h3>1. Choose your language pair</h3>
+      <p>Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page.</p>
+    </div>
+
+    <div class="card">
+      <h3>2. Look up any word, anywhere</h3>
+      <p>Four ways to reach a translation, whichever fits your flow:</p>
+      <div class="shortcut-grid">
+        <span class="keys"><kbd>Alt</kbd> + <kbd>Z</kbd></span>
+        <span class="desc">Open the dictionary popup. Type or paste any word.</span>
+
+        <span class="keys"><kbd>Alt</kbd> + <kbd>X</kbd></span>
+        <span class="desc">Select text on any web page, then press to show an in-page translation bubble.</span>
+
+        <span class="keys"><kbd>Alt</kbd> + <kbd>Q</kbd></span>
+        <span class="desc">Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken.</span>
+
+        <span class="keys"><kbd>Alt</kbd> + double-click</span>
+        <span class="desc">Hold Alt and double-click a word to translate it right where it sits.</span>
+
+        <span class="keys">Right-click</span>
+        <span class="desc">Select a word, right-click, then choose <em>WordReference: '…'</em> to open the full result in a new tab.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3. Save what you learn</h3>
+      <p>Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review.</p>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="info.html">Open Settings</a>
+      <a class="btn btn-secondary" href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer">Visit WordReference.com</a>
+    </div>
+
+    <footer>
+      <p>Not affiliated with or endorsed by WordReference.com.
+        &middot; <a href="https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd" target="_blank" rel="noopener noreferrer">Chrome Web Store</a></p>
+    </footer>
+  </main>
+</body>
+
+</html>

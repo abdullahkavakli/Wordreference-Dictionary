@@ -19,7 +19,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
   }
 });
 
@@ -47,7 +47,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
 // ── Keyboard shortcut → content-script popup ─────────────────────────────────
 
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command !== 'show-translation-popup') return;
+  if (command !== 'show-translation-popup' && command !== 'quick-lookup-selection') return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.id) return;
 
