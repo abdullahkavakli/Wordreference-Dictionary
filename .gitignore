@@ -29,4 +29,5 @@ build/
 .cursor/
 .github/
 .ai/
+.codex/
 CLAUDE.md
