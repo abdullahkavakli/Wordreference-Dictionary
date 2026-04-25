@@ -75,6 +75,30 @@
       font-weight: 600;
     }
 
+    #toolbar input[type="number"] {
+      width: 50px;
+      padding: 4px 6px;
+      border: 1px solid var(--wr-line);
+      background: #16140f;
+      color: var(--wr-toolbar-fg);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+
+    #toolbar input[type="number"]::-webkit-inner-spin-button,
+    #toolbar input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    #toolbar input[type="number"]:focus {
+      outline: none;
+      border-color: var(--wr-accent);
+    }
+
     #toolbar .hint {
       color: #8c857b;
       font-size: 11px;
@@ -149,13 +173,20 @@
   <div id="toolbar">
     <span class="title" id="filename">Loading…</span>
     <span class="group">
-      <span class="hint">Page</span>
-      <span class="badge" id="page-info">–</span>
+      <button id="prev-page" title="Previous page (PageUp)">↑</button>
+      <input type="number" id="page-input" min="1" value="1" aria-label="Page number">
+      <span class="badge" id="page-total">/ –</span>
+      <button id="next-page" title="Next page (PageDown)">↓</button>
     </span>
     <span class="group">
-      <button id="zoom-out" title="Zoom out">−</button>
-      <span class="badge" id="zoom-info">100%</span>
-      <button id="zoom-in" title="Zoom in">+</button>
+      <button id="zoom-out" title="Zoom out (−)">−</button>
+      <span class="badge" id="zoom-info">125%</span>
+      <button id="zoom-in" title="Zoom in (+)">+</button>
+      <button id="zoom-fit" title="Fit to width">⤢</button>
+    </span>
+    <span class="group">
+      <button id="download-btn" title="Download PDF">↓ Save</button>
+      <button id="print-btn" title="Print">⎙ Print</button>
     </span>
     <span class="hint">Alt + double-click · Alt + X · Alt + Q to look up a word</span>
   </div>

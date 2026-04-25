@@ -5,7 +5,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdfjs/pdf
 const pagesEl = document.getElementById('pages');
 const statusEl = document.getElementById('status');
 const filenameEl = document.getElementById('filename');
-const pageInfoEl = document.getElementById('page-info');
+const pageInputEl = document.getElementById('page-input');
+const pageTotalEl = document.getElementById('page-total');
 const zoomInfoEl = document.getElementById('zoom-info');
 
 const params = new URLSearchParams(location.search);
@@ -13,6 +14,7 @@ const fileUrl = params.get('file');
 
 let pdfDoc = null;
 let zoom = 1.25;
+let currentPage = 1;
 
 if (!fileUrl) {
   statusEl.classList.add('error');
@@ -33,7 +35,8 @@ async function load(url) {
     });
     pdfDoc = await task.promise;
     statusEl.remove();
-    pageInfoEl.textContent = `1 / ${pdfDoc.numPages}`;
+    pageInputEl.max = String(pdfDoc.numPages);
+    pageTotalEl.textContent = `/ ${pdfDoc.numPages}`;
     await renderAll();
   } catch (err) {
     statusEl.classList.add('error');
@@ -98,22 +101,69 @@ async function renderPage(num) {
   await textLayer.render();
 }
 
-document.getElementById('zoom-in').addEventListener('click', () => {
-  zoom = Math.min(3, zoom + 0.25);
+function changeZoom(next) {
+  zoom = Math.max(0.5, Math.min(3, next));
   zoomInfoEl.textContent = `${Math.round(zoom * 100)}%`;
   if (pdfDoc) renderAll();
+}
+
+document.getElementById('zoom-in').addEventListener('click', () => changeZoom(zoom + 0.25));
+document.getElementById('zoom-out').addEventListener('click', () => changeZoom(zoom - 0.25));
+
+document.getElementById('zoom-fit').addEventListener('click', async () => {
+  if (!pdfDoc) return;
+  const page = await pdfDoc.getPage(currentPage);
+  const baseViewport = page.getViewport({ scale: 1 });
+  const available = pagesEl.clientWidth - 24;
+  changeZoom(available / baseViewport.width);
 });
 
-document.getElementById('zoom-out').addEventListener('click', () => {
-  zoom = Math.max(0.5, zoom - 0.25);
-  zoomInfoEl.textContent = `${Math.round(zoom * 100)}%`;
-  if (pdfDoc) renderAll();
+function jumpToPage(num) {
+  if (!pdfDoc) return;
+  const target = Math.max(1, Math.min(pdfDoc.numPages, num | 0));
+  const el = pagesEl.querySelector(`.pdf-page[data-page="${target}"]`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('prev-page').addEventListener('click', () => jumpToPage(currentPage - 1));
+document.getElementById('next-page').addEventListener('click', () => jumpToPage(currentPage + 1));
+
+pageInputEl.addEventListener('change', () => jumpToPage(Number(pageInputEl.value)));
+pageInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') pageInputEl.blur(); });
+
+document.addEventListener('keydown', e => {
+  if (e.target === pageInputEl || e.target.matches('input, textarea')) return;
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'PageDown' || e.key === 'ArrowRight') { e.preventDefault(); jumpToPage(currentPage + 1); }
+  else if (e.key === 'PageUp' || e.key === 'ArrowLeft') { e.preventDefault(); jumpToPage(currentPage - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); jumpToPage(1); }
+  else if (e.key === 'End' && pdfDoc) { e.preventDefault(); jumpToPage(pdfDoc.numPages); }
+  else if (e.key === '+' || e.key === '=') { e.preventDefault(); changeZoom(zoom + 0.25); }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); changeZoom(zoom - 0.25); }
+});
+
+document.getElementById('download-btn').addEventListener('click', () => {
+  if (!fileUrl) return;
+  const a = document.createElement('a');
+  a.href = fileUrl;
+  a.download = decodeURIComponent(fileUrl.split('/').pop().split('?')[0]) || 'document.pdf';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+});
+
+document.getElementById('print-btn').addEventListener('click', () => {
+  if (!fileUrl) return;
+  window.open(fileUrl, '_blank', 'noopener');
 });
 
 const obs = new IntersectionObserver(entries => {
   for (const e of entries) {
     if (e.isIntersecting && pdfDoc) {
-      pageInfoEl.textContent = `${e.target.dataset.page} / ${pdfDoc.numPages}`;
+      currentPage = Number(e.target.dataset.page) || 1;
+      pageInputEl.value = String(currentPage);
     }
   }
 }, { threshold: 0.5 });
