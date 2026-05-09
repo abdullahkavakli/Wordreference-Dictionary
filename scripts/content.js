@@ -11,8 +11,8 @@
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
   const FETCH_TIMEOUT_MS = 3400;
-  const FETCH_RETRIES = 4;
   const FETCH_BACKOFF_MS = 300;
+  const HEDGE_OFFSETS_MS = [0, 1500, 3000];
 
   function buildFavoritesApiFallback() {
     const STORAGE_KEY = 'favorites';
@@ -610,68 +610,100 @@
   // Stream the response and stop as soon as the WRD table is complete.
   // WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
   // English definition pages have no WRD table and need a larger cap.
-  async function fetchWRPage(url) {
-    const isDefPage = url.includes('/definition/');
+  async function fetchWROnce(url, isDefPage, externalSignal) {
     const CAP = isDefPage ? 200000 : 80000;
-    let lastError = null;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    let onExternalAbort = null;
+    if (externalSignal) {
+      if (externalSignal.aborted) controller.abort();
+      else {
+        onExternalAbort = () => controller.abort();
+        externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+      }
+    }
+    try {
+      const resp = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+      if (!resp.ok) {
+        const httpError = new Error('HTTP ' + resp.status);
+        httpError.status = resp.status;
+        throw httpError;
+      }
+      if (!resp.body) throw new Error('Empty response body');
 
-    for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let html = '';
+      let foundCompleteTable = false;
+      let capReached = false;
       try {
-        const resp = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-        if (!resp.ok) {
-          const httpError = new Error('HTTP ' + resp.status);
-          httpError.status = resp.status;
-          throw httpError;
-        }
-        if (!resp.body) throw new Error('Empty response body');
-
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let html = '';
-        let foundCompleteTable = false;
-        let capReached = false;
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            html += decoder.decode(value, { stream: true });
-            if (!isDefPage) {
-              const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
-              if (wrdIdx !== -1) {
-                const tableClose = html.indexOf('</table>', wrdIdx);
-                if (tableClose !== -1) {
-                  html = html.slice(0, tableClose + 8);
-                  foundCompleteTable = true;
-                  break;
-                }
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          html += decoder.decode(value, { stream: true });
+          if (!isDefPage) {
+            const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
+            if (wrdIdx !== -1) {
+              const tableClose = html.indexOf('</table>', wrdIdx);
+              if (tableClose !== -1) {
+                html = html.slice(0, tableClose + 8);
+                foundCompleteTable = true;
+                break;
               }
             }
-            if (html.length > CAP) {
-              capReached = true;
-              break; // safety cap
-            }
           }
-        } finally {
-          reader.cancel().catch(() => { });
+          if (html.length > CAP) {
+            capReached = true;
+            break; // safety cap
+          }
         }
+      } finally {
+        reader.cancel().catch(() => { });
+      }
 
-        // If stream ended naturally without early table detection, keep full HTML
-        // and let parseWR decide whether results exist.
-        if (!isDefPage && capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
-        clearTimeout(timeoutId);
-        return html;
-      } catch (err) {
-        lastError = err;
-        clearTimeout(timeoutId);
-        const canRetry = attempt < (FETCH_RETRIES - 1) && isTransientFetchError(err);
-        if (!canRetry) throw err;
-        await sleep(FETCH_BACKOFF_MS * (attempt + 1));
+      // If stream ended naturally without early table detection, keep full HTML
+      // and let parseWR decide whether results exist.
+      if (!isDefPage && capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
+      return html;
+    } finally {
+      clearTimeout(timeoutId);
+      if (onExternalAbort) externalSignal.removeEventListener('abort', onExternalAbort);
+    }
+  }
+
+  // Hedged race: fire attempt 1 at t=0, attempt 2 at +1.5s, attempt 3 at +3s
+  // (each with its own 3.4s deadline). First success wins; losers get aborted.
+  // If all three lose, fall back to one final sequential attempt #4.
+  async function fetchWRPage(url) {
+    const isDefPage = url.includes('/definition/');
+    const cancel = new AbortController();
+    const raceErrors = [];
+
+    const racing = HEDGE_OFFSETS_MS.map(async (offset) => {
+      if (offset > 0) await sleep(offset);
+      if (cancel.signal.aborted) throw new DOMException('canceled by winner', 'AbortError');
+      return fetchWROnce(url, isDefPage, cancel.signal);
+    });
+
+    try {
+      const html = await Promise.any(racing);
+      cancel.abort();
+      return html;
+    } catch (err) {
+      if (err && Array.isArray(err.errors)) {
+        for (const e of err.errors) {
+          if (!(e && e.name === 'AbortError')) raceErrors.push(e);
+        }
       }
     }
 
-    throw lastError || new Error('Unknown fetch error');
+    await sleep(FETCH_BACKOFF_MS * 3);
+    try {
+      return await fetchWROnce(url, isDefPage, null);
+    } catch (err) {
+      const meaningful = raceErrors.find(e => isTransientFetchError(e) || typeof e.status === 'number');
+      throw meaningful || err;
+    }
   }
 
   async function showPopupForSelection(sourceTarget = null, prefetchedTerm = '') {
