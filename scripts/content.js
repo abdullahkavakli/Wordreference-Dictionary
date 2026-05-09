@@ -10,7 +10,7 @@
   const STYLE_ID = 'wr-selection-style';
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
-  const FETCH_TIMEOUT_MS = 8000;
+  const FETCH_TIMEOUT_MS = 3400;
   const FETCH_RETRIES = 4;
   const FETCH_BACKOFF_MS = 300;
 
