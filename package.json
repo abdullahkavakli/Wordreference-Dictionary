@@ -1,6 +1,6 @@
 {
   "name": "wordreference-dictionary",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "private": true,
   "description": "Local-only dev manifest — used to run unit tests against the favorites and parser modules. The shipped extension does not consume this file.",
   "scripts": {

@@ -12,7 +12,7 @@
   const WR_BASE = 'https://www.wordreference.com';
   const FETCH_TIMEOUT_MS = 3400;
   const FETCH_BACKOFF_MS = 300;
-  const HEDGE_OFFSETS_MS = [0, 1500, 3000];
+  const HEDGE_OFFSETS_MS = [0, 1100, 1700];
 
   function buildFavoritesApiFallback() {
     const STORAGE_KEY = 'favorites';
