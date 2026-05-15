@@ -174,10 +174,21 @@ body {
 }
 
 .icon-btn {
-  padding: 0;
+  padding: 5px 3px;
+  min-height: 40px;
   border: 0;
+  border-radius: 6px;
   background: transparent;
   line-height: 0;
+  cursor: pointer;
+}
+
+.btn:focus-visible,
+.icon-btn:focus-visible,
+.favorite-btn:focus-visible,
+.wr-logo-btn:focus-visible {
+  outline: 2px solid var(--wr-accent);
+  outline-offset: 2px;
 }
 
 .wr-ipa-inline {
@@ -262,7 +273,7 @@ body {
 }
 
 table {
-  overflow: scroll;
+  overflow: auto;
   font-size: 13px;
   margin-bottom: 10px;
   border: 1px solid var(--wr-line);
@@ -354,4 +365,19 @@ table tbody a:hover {
   margin-top: 10px;
   border-top: 1px solid var(--wr-line);
   padding-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #search-input,
+  #wr-btn,
+  .favorite-btn,
+  .flag,
+  .wr-logo-btn {
+    transition: none;
+  }
+
+  .favorite-btn:hover,
+  .flag:hover {
+    transform: none;
+  }
 }

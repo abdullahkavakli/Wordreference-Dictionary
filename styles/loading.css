@@ -122,3 +122,12 @@ Credit: https://codepen.io/ademilter/pen/JDtcy
     z-index: 4;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  #left .pie,
+  #right .pie,
+  .dot {
+    -webkit-animation: none;
+    animation: none;
+  }
+}
