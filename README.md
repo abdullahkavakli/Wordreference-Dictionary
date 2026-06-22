@@ -40,7 +40,7 @@ wordreference/
 ├── popup.html          # Extension popup
 ├── info.html           # Options / settings page
 ├── scripts/
-│   ├── background.js   # Service worker: context menu and keyboard shortcut relay
+│   ├── background.js   # Service worker: WordReference fetch, context menu, keyboard shortcut relay
 │   ├── content.js      # In-page translation bubble
 │   ├── popup.js        # Popup search & rendering
 │   ├── options.js      # Settings page logic
@@ -67,6 +67,7 @@ wordreference/
 - Favorites are stored locally on your device in `chrome.storage.local`.
 - It does not send user data to any custom backend.
 - Translation results are fetched directly from `wordreference.com`.
+- To pass WordReference's anti-bot check, the extension sets a single `nginx_wr_human` cookie on `wordreference.com` (the same cookie the site sets for ordinary visitors). No other cookies are read or written, and no tracking is performed.
 
 ## Third-party notices
 

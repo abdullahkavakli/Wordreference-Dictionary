@@ -10,7 +10,6 @@
   const STYLE_ID = 'wr-selection-style';
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
-  const FETCH_TIMEOUT_MS = 3400;
   const FETCH_BACKOFF_MS = 300;
   const HEDGE_OFFSETS_MS = [0, 1100, 1700];
 
@@ -623,68 +622,31 @@
     return token === popupRequestToken && popup && popup.isConnected && popup.id === POPUP_ID;
   }
 
-  // Stream the response and stop as soon as the WRD table is complete.
-  // WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
-  // English definition pages have no WRD table and need a larger cap.
-  async function fetchWROnce(url, isDefPage, externalSignal) {
-    const CAP = isDefPage ? 200000 : 80000;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    let onExternalAbort = null;
-    if (externalSignal) {
-      if (externalSignal.aborted) controller.abort();
-      else {
-        onExternalAbort = () => controller.abort();
-        externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+  // The actual network fetch runs in the background service worker: page context
+  // can't carry WR's cross-site anti-bot cookie, the extension context can.
+  // Background streams, caps the payload, and (re)seeds the cookie on a 418.
+  function fetchWROnce(url, _isDefPage, externalSignal) {
+    return new Promise((resolve, reject) => {
+      if (externalSignal && externalSignal.aborted) {
+        reject(new DOMException('canceled by winner', 'AbortError'));
+        return;
       }
-    }
-    try {
-      const resp = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-      if (!resp.ok) {
-        const httpError = new Error('HTTP ' + resp.status);
-        httpError.status = resp.status;
-        throw httpError;
-      }
-      if (!resp.body) throw new Error('Empty response body');
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let html = '';
-      let foundCompleteTable = false;
-      let capReached = false;
       try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          html += decoder.decode(value, { stream: true });
-          if (!isDefPage) {
-            const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
-            if (wrdIdx !== -1) {
-              const tableClose = html.indexOf('</table>', wrdIdx);
-              if (tableClose !== -1) {
-                html = html.slice(0, tableClose + 8);
-                foundCompleteTable = true;
-                break;
-              }
-            }
+        chrome.runtime.sendMessage({ type: 'wr-fetch', url }, res => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (!res) {
+            reject(new Error('No response from background'));
+          } else if (res.error) {
+            const e = new Error(res.error);
+            if (typeof res.status === 'number') e.status = res.status;
+            reject(e);
+          } else {
+            resolve(res.html);
           }
-          if (html.length > CAP) {
-            capReached = true;
-            break; // safety cap
-          }
-        }
-      } finally {
-        reader.cancel().catch(() => { });
-      }
-
-      // If stream ended naturally without early table detection, keep full HTML
-      // and let parseWR decide whether results exist.
-      if (!isDefPage && capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
-      return html;
-    } finally {
-      clearTimeout(timeoutId);
-      if (onExternalAbort) externalSignal.removeEventListener('abort', onExternalAbort);
-    }
+        });
+      } catch (e) { reject(e); }
+    });
   }
 
   // Hedged race: fire attempt 1 at t=0, attempt 2 at +1.5s, attempt 3 at +3s

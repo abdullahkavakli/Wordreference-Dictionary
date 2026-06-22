@@ -611,39 +611,25 @@ function renderResults(sections, str, dir) {
 
 // ─── Main search ─────────────────────────────────────────────────────────────
 
-// Stream the response and stop as soon as the WRD table is complete.
-// WR pages are 200–400 KB but the IPA + translation table are in the first ~30 KB.
-// English definition pages have no WRD table and need a larger cap.
-async function fetchWRPage(url) {
-  const isDefPage = url.includes('/definition/');
-  const CAP = isDefPage ? 200000 : 80000;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  if (!resp.body) return await resp.text();
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let html = '';
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      html += decoder.decode(value, { stream: true });
-      if (!isDefPage) {
-        const wrdIdx = html.search(/id=["']WRD["']/);
-        if (wrdIdx !== -1) {
-          const tableClose = html.indexOf('</table>', wrdIdx);
-          if (tableClose !== -1) {
-            html = html.slice(0, tableClose + 8);
-            break;
-          }
-        }
+// The actual network fetch runs in the background service worker (see
+// background.js): the popup's page context can't reliably carry WR's cross-site
+// anti-bot cookie, but the extension/background context can.
+function fetchWRPage(url) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ type: 'wr-fetch', url }, res => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else if (!res) {
+        reject(new Error('No response from background'));
+      } else if (res.error) {
+        const e = new Error(res.error);
+        if (typeof res.status === 'number') e.status = res.status;
+        reject(e);
+      } else {
+        resolve(res.html);
       }
-      if (html.length > CAP) break; // safety cap
-    }
-  } finally {
-    reader.cancel().catch(() => { });
-  }
-  return html;
+    });
+  });
 }
 
 let _lastDir = null;

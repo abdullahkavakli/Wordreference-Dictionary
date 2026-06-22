@@ -44,6 +44,122 @@ chrome.contextMenus.onClicked.addListener((info) => {
   }
 });
 
+// ── WordReference anti-bot cookie ───────────────────────────────────────────
+// WR's nginx gate replies with HTTP 418 + an inline script that sets
+// `nginx_wr_human=1` and reloads. fetch() never runs that script and the 418
+// carries no Set-Cookie header, so our fetches are rejected forever. We set the
+// cookie ourselves; SameSite=None+Secure lets it ride along on the extension's
+// (cross-site) credentialed fetches.
+async function ensureHumanCookie() {
+  if (!chrome.cookies || !chrome.cookies.set) return;
+  try {
+    await chrome.cookies.set({
+      url: WR_BASE + '/',
+      name: 'nginx_wr_human',
+      value: '1',
+      domain: '.wordreference.com',
+      path: '/',
+      secure: true,
+      sameSite: 'no_restriction',
+      expirationDate: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60
+    });
+  } catch { /* a real WR visit may already hold the cookie */ }
+}
+
+chrome.runtime.onInstalled.addListener(() => { ensureHumanCookie(); });
+chrome.runtime.onStartup.addListener(() => { ensureHumanCookie(); });
+
+// ── WordReference page fetch (runs in the extension context) ─────────────────
+// Page-context fetches (content script / popup) can't carry WR's cross-site
+// anti-bot cookie, but the extension context can — so they delegate here.
+// Stream and stop as soon as the WRD table closes: pages are 200–400 KB but the
+// IPA + translation table are in the first ~30 KB. English /definition/ pages
+// have no WRD table and need a larger cap.
+const WR_FETCH_TIMEOUT_MS = 6000;
+
+async function wrFetchOnce(url, isDefPage) {
+  const CAP = isDefPage ? 200000 : 80000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WR_FETCH_TIMEOUT_MS);
+  try {
+    const resp = await fetch(url, { credentials: 'include', cache: 'no-store', signal: controller.signal });
+    if (!resp.ok) {
+      const httpError = new Error('HTTP ' + resp.status);
+      httpError.status = resp.status;
+      throw httpError;
+    }
+    if (!resp.body) return await resp.text();
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let html = '';
+    let foundCompleteTable = false;
+    let capReached = false;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        html += decoder.decode(value, { stream: true });
+        if (!isDefPage) {
+          const wrdIdx = html.search(/\b(?:id|class)\s*=\s*["'][^"']*\bWRD\b[^"']*["']/i);
+          if (wrdIdx !== -1) {
+            const tableClose = html.indexOf('</table>', wrdIdx);
+            if (tableClose !== -1) {
+              html = html.slice(0, tableClose + 8);
+              foundCompleteTable = true;
+              break;
+            }
+          }
+        }
+        if (html.length > CAP) { capReached = true; break; }
+      }
+    } finally {
+      reader.cancel().catch(() => { });
+    }
+    if (!isDefPage && capReached && !foundCompleteTable) throw new Error('Incomplete WordReference payload');
+    return html;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function fetchWRPage(url) {
+  const isDefPage = url.includes('/definition/');
+  try {
+    return await wrFetchOnce(url, isDefPage);
+  } catch (err) {
+    if (err && err.status === 418) {
+      await ensureHumanCookie();              // gate rejected us → (re)seed and retry once
+      return await wrFetchOnce(url, isDefPage);
+    }
+    throw err;
+  }
+}
+
+// Single message listener: with multiple listeners (one of them async) Chrome
+// closes the port before an async sendResponse fires, so all WR messaging — the
+// page→background fetch and the Alt+<key> popup relay — is handled here.
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (!msg) return;
+
+  if (msg.type === 'wr-fetch' && typeof msg.url === 'string') {
+    fetchWRPage(msg.url)
+      .then(html => sendResponse({ html }))
+      .catch(err => sendResponse({ error: String((err && err.message) || err), status: err && err.status }));
+    return true; // keep the channel open for the async response
+  }
+
+  if (msg.type === 'WR_OPEN_POPUP') {
+    (async () => {
+      try {
+        await chrome.action.setPopup({ popup: 'popup.html' });
+        await chrome.action.openPopup();
+        await chrome.action.setPopup({ popup: '' });
+      } catch { /* restricted page or no user gesture */ }
+    })();
+  }
+});
+
 // ── Keyboard shortcut → content-script popup ─────────────────────────────────
 
 chrome.commands.onCommand.addListener(async (command) => {
@@ -142,19 +258,6 @@ chrome.commands.onCommand.addListener(async (command) => {
       args: [WR_BASE, _bgLangPair]
     });
   } catch { /* truly inaccessible page */ }
-});
-
-// ── Page-level popup shortcut relay (Alt+<key>) ─────────────────────────────
-
-chrome.runtime.onMessage.addListener(async (msg, sender) => {
-  if (!msg || msg.type !== 'WR_OPEN_POPUP') return;
-  try {
-    await chrome.action.setPopup({ popup: 'popup.html' });
-    await chrome.action.openPopup();
-    await chrome.action.setPopup({ popup: '' });
-  } catch {
-    // Ignore failures (restricted pages or no user gesture)
-  }
 });
 
 // ── Language pair setting ──────────────────────────────────────────────────────
