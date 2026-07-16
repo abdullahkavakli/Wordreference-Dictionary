@@ -72,13 +72,15 @@ chrome.runtime.onStartup.addListener(() => { ensureHumanCookie(); });
 // ── WordReference page fetch (runs in the extension context) ─────────────────
 // Page-context fetches (content script / popup) can't carry WR's cross-site
 // anti-bot cookie, but the extension context can — so they delegate here.
-// Stream and stop as soon as the WRD table closes: pages are 200–400 KB but the
-// IPA + translation table are in the first ~30 KB. English /definition/ pages
-// have no WRD table and need a larger cap.
+// Stream and stop as soon as the WRD table closes: pages are 140–400 KB and the
+// table now starts ~82–120 KB in, so the early exit still skips the tail.
+// The cap is only a runaway guard, and must stay above a full page: a lookup
+// with no results has no WRD table, so it streams to the end (~140 KB) — cap it
+// below that and it aborts instead of rendering "no results".
 const WR_FETCH_TIMEOUT_MS = 6000;
 
 async function wrFetchOnce(url, isDefPage) {
-  const CAP = isDefPage ? 200000 : 80000;
+  const CAP = 200000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), WR_FETCH_TIMEOUT_MS);
   try {
