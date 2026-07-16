@@ -39,8 +39,13 @@
   const favoritesExportBtn = document.getElementById('favorites-export-btn');
   const favoritesClearBtn = document.getElementById('favorites-clear-btn');
   const favoritesStatusEl = document.getElementById('favorites-status');
+  const versionEl = document.getElementById('ext-version');
 
   let favoritesCache = [];
+
+  // Single source of truth: the footer version comes from the manifest, so a
+  // release bump can't leave it stale (it read v2.3.3 for two releases).
+  if (versionEl) versionEl.textContent = chrome.runtime.getManifest().version;
 
   function modifierLabel(value) {
     switch (value) {
