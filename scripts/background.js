@@ -23,15 +23,6 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-chrome.action.onClicked.addListener(async () => {
-  // Open popup programmatically (default_popup is not set so onClicked fires)
-  try {
-    await chrome.action.setPopup({ popup: 'popup.html' });
-    await chrome.action.openPopup();
-    await chrome.action.setPopup({ popup: '' });
-  } catch { /* popup may fail on restricted pages */ }
-});
-
 function wrLookupUrl(term) {
   if (_bgLangPair === 'en') return `${WR_BASE}/definition/${encodeURIComponent(term)}`;
   return `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}`;
@@ -151,13 +142,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true; // keep the channel open for the async response
   }
 
+  // The toolbar click and the Alt+Z command open popup.html natively via the
+  // manifest's default_popup. Only a custom in-page shortcut reaches here, and
+  // it must not touch setPopup: clearing it would disable the native path.
+  // openPopup() needs Chrome 127+, so this path alone degrades on older builds.
   if (msg.type === 'WR_OPEN_POPUP') {
     (async () => {
       try {
-        await chrome.action.setPopup({ popup: 'popup.html' });
         await chrome.action.openPopup();
-        await chrome.action.setPopup({ popup: '' });
-      } catch { /* restricted page or no user gesture */ }
+      } catch { /* restricted page, no user gesture, or Chrome < 127 */ }
     })();
   }
 });
