@@ -1,10 +1,9 @@
 /**
- * Unit tests for the WR HTML parsers in scripts/content.js.
+ * Unit tests for the WR HTML parsers in scripts/parser.js, shared by the
+ * popup (popup.js) and the in-page bubble (content.js).
  *
- * The parsers (parseWR, parseEnDef, extractIPA) live inside content.js's
- * IIFE, so they can't be required directly. We extract their source by
- * regex and re-evaluate them in a clean scope with a jsdom Document. This
- * keeps content.js untouched and tests the production parser code verbatim.
+ * parser.js is loaded verbatim into a Node vm sandbox and run against jsdom
+ * Documents, so the tests exercise the code that ships.
  *
  * Fixtures are minimal handcrafted HTML mirroring the structure of real
  * WordReference responses (table#WRD with td.FrWrd/.ToWrd/.To2 cells for
@@ -18,43 +17,19 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const { JSDOM } = require('jsdom');
 
-const CONTENT_SRC = fs.readFileSync(
-  path.join(__dirname, '..', 'scripts', 'content.js'),
-  'utf8'
+const ctx = vm.createContext({});
+vm.runInContext(
+  fs.readFileSync(path.join(__dirname, '..', 'scripts', 'parser.js'), 'utf8'),
+  ctx
 );
+const { parseWR, parseEnDef, extractIPA } = ctx.WRParser;
 
-function extractFunction(name) {
-  const headerRe = new RegExp(`function\\s+${name}\\s*\\([^)]*\\)\\s*\\{`);
-  const m = CONTENT_SRC.match(headerRe);
-  if (!m) throw new Error(`Could not locate function ${name} in content.js`);
-  let depth = 0;
-  let started = false;
-  for (let i = m.index; i < CONTENT_SRC.length; i++) {
-    const ch = CONTENT_SRC[i];
-    if (ch === '{') { depth++; started = true; }
-    else if (ch === '}') { depth--; if (started && depth === 0) return CONTENT_SRC.substring(m.index, i + 1); }
-  }
-  throw new Error(`Unbalanced braces extracting ${name}`);
-}
-
-function loadParser(name) {
-  const src = extractFunction(name);
-  return new Function(`${src} return ${name};`)();
-}
-
-const parseWR = loadParser('parseWR');
-const parseEnDef = loadParser('parseEnDef');
-const extractIPA = (() => {
-  // extractIPA depends on a closed-over `settings` variable; provide a stub
-  // and recompile so the function reads the test-supplied dialect.
-  const src = extractFunction('extractIPA');
-  return (doc, dialect) => {
-    const settings = { ipaDialect: dialect || 'us' };
-    return new Function('settings', `${src} return extractIPA;`)(settings)(doc);
-  };
-})();
+// The bubble's flat view of the sectioned results (as content.js uses them).
+const entriesOf = doc => parseWR(doc).flatMap(section => section.entries);
+const defsOf = doc => parseEnDef(doc).flatMap(section => section.defs);
 
 function html(body) {
   return new JSDOM(`<!doctype html><html><body>${body}</body></html>`).window.document;
@@ -85,9 +60,9 @@ test('parseWR extracts a single bilingual entry with translations', () => {
     </table>
   `);
 
-  const rows = parseWR(doc);
+  const rows = entriesOf(doc);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].from, 'hello');
+  assert.equal(rows[0].fromWord, 'hello');
   assert.equal(rows[0].fromPos, 'interj');
   assert.equal(rows[0].translations.length, 2);
   assert.equal(rows[0].translations[0].word, 'hola');
@@ -114,7 +89,7 @@ test('parseWR captures multiple from-entries on the same lookup', () => {
     </table>
   `);
 
-  const rows = parseWR(doc);
+  const rows = entriesOf(doc);
   assert.equal(rows.length, 2);
   assert.equal(rows[0].fromPos, 'n');
   assert.equal(rows[1].fromPos, 'vi');
@@ -138,9 +113,9 @@ test('parseWR strips em/sup/.tooltip noise from cell text', () => {
     </table>
   `);
 
-  const rows = parseWR(doc);
+  const rows = entriesOf(doc);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].from, 'book');
+  assert.equal(rows[0].fromWord, 'book');
   assert.equal(rows[0].translations[0].word, 'livro');
 });
 
@@ -157,9 +132,31 @@ test('parseWR ignores rows without a ToWrd cell', () => {
     </table>
   `);
 
-  const rows = parseWR(doc);
+  const rows = entriesOf(doc);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].from, 'real');
+  assert.equal(rows[0].fromWord, 'real');
+});
+
+test('parseWR skips the language-label header row', () => {
+  // Real WR markup: <tr class='langHeader'> holds FrWrd/ToWrd cells with the
+  // language names, which must not show up as a translation.
+  const doc = html(`
+    <table id="WRD">
+      <tbody>
+        <tr class="wrtopsection"><td colspan="3" title="Principal Translations">Principal Translations</td></tr>
+        <tr class="langHeader"><td class="FrWrd">İngilizce</td><td></td><td class="ToWrd">Türkçe</td></tr>
+        <tr>
+          <td class="FrWrd"><strong>book</strong> <em>n</em></td>
+          <td class="ToWrd">kitap <em>i</em></td>
+        </tr>
+      </tbody>
+    </table>
+  `);
+
+  const rows = entriesOf(doc);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].fromWord, 'book');
+  assert.equal(rows[0].translations[0].word, 'kitap');
 });
 
 // ── parseEnDef ─────────────────────────────────────────────────────────────
@@ -188,7 +185,7 @@ test('parseEnDef extracts Random House entries with examples and labels stripped
     </div>
   `);
 
-  const defs = parseEnDef(doc);
+  const defs = defsOf(doc);
   assert.equal(defs.length, 2);
   assert.equal(defs[0].text, 'to greet politely.');
   assert.equal(defs[0].example, 'She started the meeting.');
@@ -209,7 +206,7 @@ test('parseEnDef extracts Collins entries with multiple examples joined', () => 
     </div>
   `);
 
-  const defs = parseEnDef(doc);
+  const defs = defsOf(doc);
   assert.equal(defs.length, 1);
   assert.equal(defs[0].text, 'to begin doing something');
   assert.equal(defs[0].example, 'She started early.; They started to laugh.');
@@ -225,10 +222,27 @@ test('parseEnDef merges Random House and Collins entries together', () => {
     </div>
   `);
 
-  const defs = parseEnDef(doc);
+  const defs = defsOf(doc);
   assert.equal(defs.length, 2);
   assert.equal(defs[0].text, 'RH definition');
   assert.equal(defs[1].text, 'Collins definition');
+});
+
+test('parseEnDef titles each section from the preceding span.small1', () => {
+  const doc = html(`
+    <span class="small1">WordReference Random House Learner's Dictionary</span>
+    <div class="entryRH"><ol><li><span class="rh_def">RH definition</span></li></ol></div>
+    <div class="entrySeparator"></div>
+    <div class="superentry collinsen">
+      <ul><li class="sense"><span class="definition">Collins definition</span></li></ul>
+    </div>
+  `);
+
+  const sections = parseEnDef(doc);
+  assert.equal(sections.length, 2);
+  assert.equal(sections[0].title, "WordReference Random House Learner's Dictionary");
+  // The separator stops the search, so Collins falls back to its default title.
+  assert.equal(sections[1].title, 'Collins English Dictionary');
 });
 
 // ── extractIPA ─────────────────────────────────────────────────────────────

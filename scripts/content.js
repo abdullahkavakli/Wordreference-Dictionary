@@ -360,44 +360,19 @@
   }
 
 
-  // ── Parser ───────────────────────────────────────────────────────────────────
+  // ── Parsers (shared with the popup: scripts/parser.js) ──────────────────────
+  // The bubble shows one flat list, so the section grouping is dropped here.
 
   function parseWR(doc) {
-    const table = doc.querySelector('table#WRD, table.WRD');
-    if (!table) return [];
+    return WRParser.parseWR(doc).flatMap(section => section.entries);
+  }
 
-    const rows = [];
-    let entry = null;
+  function parseEnDef(doc) {
+    return WRParser.parseEnDef(doc).flatMap(section => section.defs);
+  }
 
-    for (const row of table.querySelectorAll('tr')) {
-      const frCell = row.querySelector('td.FrWrd');
-      const toCell = row.querySelector('td.ToWrd');
-      const glossCell = row.querySelector('td.To2');
-      if (!toCell) continue;
-
-      const getWord = cell => {
-        const c = cell.cloneNode(true);
-        c.querySelectorAll('em, sup, .tooltip').forEach(e => e.remove());
-        return c.textContent.replace(/\s+/g, ' ').trim();
-      };
-      const getPos = cell => {
-        const em = cell.querySelector('em.POS2, em');
-        return em ? em.textContent.trim() : '';
-      };
-
-      const toWord = getWord(toCell);
-      const toPos = getPos(toCell);
-      const gloss = glossCell ? glossCell.textContent.replace(/[()]/g, '').trim() : '';
-
-      if (frCell) {
-        entry = { from: getWord(frCell), fromPos: getPos(frCell), translations: [] };
-        rows.push(entry);
-      }
-      if (entry && toWord) {
-        entry.translations.push({ word: toWord, pos: toPos, gloss });
-      }
-    }
-    return rows;
+  function extractIPA(doc) {
+    return WRParser.extractIPA(doc, settings.ipaDialect);
   }
 
   function getFirstBilingualExplanation(rows) {
@@ -529,69 +504,6 @@
         }
       }
     });
-  }
-
-  // ── English monolingual definition parser ─────────────────────────────────────
-
-  function parseEnDef(doc) {
-    const defs = [];
-
-    // Random House entries
-    doc.querySelectorAll('div.entryRH').forEach(entry => {
-      entry.querySelectorAll('ol > li').forEach(li => {
-        const defEl = li.querySelector('.rh_def');
-        if (!defEl) return;
-        const clone = defEl.cloneNode(true);
-        let example = '';
-        const exEl = clone.querySelector('.rh_ex');
-        if (exEl) { example = exEl.textContent.trim(); exEl.remove(); }
-        clone.querySelectorAll('.rh_lab, .rh_cat').forEach(el => el.remove());
-        const text = clone.textContent.replace(/\s+/g, ' ').trim();
-        if (text) defs.push({ text, example });
-      });
-    });
-
-    // Collins entries
-    doc.querySelectorAll('div.superentry.collinsen').forEach(entry => {
-      entry.querySelectorAll('li.sense').forEach(li => {
-        const defEl = li.querySelector('.definition');
-        if (!defEl) return;
-        const text = defEl.textContent.replace(/\s+/g, ' ').trim();
-        const exEls = li.querySelectorAll('.example');
-        const example = exEls.length ? [...exEls].map(e => e.textContent.trim()).join('; ') : '';
-        if (text) defs.push({ text, example });
-      });
-    });
-
-    return defs;
-  }
-
-  // ── IPA extraction ───────────────────────────────────────────────────────────
-
-  function extractIPA(doc) {
-    const dialect = settings.ipaDialect || 'us';
-
-    function readPronSpan(el) {
-      const clone = el.cloneNode(true);
-      // Remove tooltip inner spans, keep <i>/<sup> which hold IPA chars
-      clone.querySelectorAll('span').forEach(s => s.remove());
-      return clone.textContent.trim();
-    }
-
-    // UK IPA: span.pronWR
-    let ukIPA = null;
-    const ukEl = doc.querySelector('span.pronWR');
-    if (ukEl) ukIPA = readPronSpan(ukEl) || null;
-
-    // US IPA: span.pronRH where text starts with / (not the respelling variant)
-    let usIPA = null;
-    for (const el of doc.querySelectorAll('span.pronRH')) {
-      const t = readPronSpan(el);
-      if (t.startsWith('/')) { usIPA = t; break; }
-    }
-
-    if (dialect === 'us') return usIPA || ukIPA;
-    return ukIPA || usIPA;
   }
 
   // ── Fetch + show ─────────────────────────────────────────────────────────────
@@ -760,7 +672,7 @@
           ${displayRows.map(e => `
             <div class="wr-row">
               <div class="wr-from">
-                ${escapeHtml(e.from)}
+                ${escapeHtml(e.fromWord)}
                 ${e.fromPos ? `<span class="wr-pos"> (${escapeHtml(e.fromPos)})</span>` : ''}
               </div>
               <div>
