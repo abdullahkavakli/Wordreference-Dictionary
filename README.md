@@ -2,9 +2,11 @@
 
 [![tests](https://github.com/abdullahkavakli/Wordreference-Dictionary/actions/workflows/test.yml/badge.svg)](https://github.com/abdullahkavakli/Wordreference-Dictionary/actions/workflows/test.yml)
 
-A Chrome extension that brings **WordReference.com lookups for English ↔ multiple languages** and **English monolingual definitions** to your browser, modeled after the [Tureng Dictionary extension](https://chromewebstore.google.com/detail/tureng-dictionary/ihedienojfhdahpomfldoejaimefofff).
+WordReference.com lookups in your browser, for **English ↔ multiple languages** and **English monolingual definitions**.
 
 Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, German, Dutch, Swedish, Arabic, Chinese, Russian, Greek, Polish, Romanian, Czech, Japanese, Korean, Icelandic, and English (monolingual).
+
+⭐ **Featured** on the Chrome Web Store: **[Install](https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd)**
 
 ## Features
 
@@ -20,64 +22,25 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | **Open in WR** | Click the WR logo in the popup to open full results on WordReference. |
 | **PDF support** *(opt-in)* | Enable in settings to open PDFs in a built-in viewer where Alt + double-click / Alt+Q / Alt+X work over the rendered text. |
 
-## Chrome Web Store
+## Privacy & permissions
 
-Install from the Chrome Web Store:
-https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd
-
-## Installation
-
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select this project folder.
+- Preferences are stored in `chrome.storage.sync`; favorites stay on your device in `chrome.storage.local`.
+- Translation results are fetched directly from `wordreference.com`. The extension does not send user data to any custom backend.
+- To pass WordReference's anti-bot check, the extension sets a single `nginx_wr_human` cookie on `wordreference.com` (the same cookie the site sets for ordinary visitors). No other cookies are read or written, and no tracking is performed.
 
 ## Development
 
-```
-wordreference/
-├── manifest.json
-├── popup.html          # Extension popup
-├── info.html           # Options / settings page
-├── scripts/
-│   ├── background.js   # Service worker: WordReference fetch, context menu, keyboard shortcut relay
-│   ├── content.js      # In-page translation bubble
-│   ├── popup.js        # Popup search & rendering
-│   ├── options.js      # Settings page logic
-│   ├── favorites.js    # Favorites storage/management (chrome.storage.local)
-│   └── xlsx.full.min.js # SheetJS — lazy-loaded only on favorites export
-├── styles/
-│   ├── main.css        # incl. minimal Bootstrap-compatible shim
-│   └── loading.css
-├── images/
-│   ├── AppIcon.png
-│   ├── icon-{16,32,48,128}.png
-│   ├── flag-*.png      # 19 language flag icons
-│   └── voice-logo.png
-├── _locales/
-│   └── en/messages.json
-├── welcome.html        # First-install onboarding
-├── pdf-viewer.html     # Opt-in PDF.js viewer (enable in settings)
-└── vendor/pdfjs/       # Mozilla PDF.js (Apache-2.0)
+Load the repo root as an unpacked extension: `chrome://extensions` → **Developer mode** → **Load unpacked**. Unit tests:
+
+```sh
+npm install   # one-time; dev-only (jsdom)
+npm test
 ```
 
-## Privacy & permissions
-
-- The extension stores user preferences (shortcuts, modifier, IPA dialect) in `chrome.storage.sync`.
-- Favorites are stored locally on your device in `chrome.storage.local`.
-- It does not send user data to any custom backend.
-- Translation results are fetched directly from `wordreference.com`.
-- To pass WordReference's anti-bot check, the extension sets a single `nginx_wr_human` cookie on `wordreference.com` (the same cookie the site sets for ordinary visitors). No other cookies are read or written, and no tracking is performed.
-
-## Third-party notices
-
-Excel export uses SheetJS Community Edition (`xlsx`). PDF rendering in the
-opt-in viewer uses Mozilla PDF.js. See `THIRD_PARTY_NOTICES.md`.
+Recipes, release steps, and packaging: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## License
 
-**Proprietary License**
+Proprietary. Copyright (c) 2026 Abdullah Kavakli. All rights reserved. Commercial use, redistribution, and modification require prior written consent and payment of a licensing fee; see `LICENSE`.
 
-Copyright (c) 2026 Abdullah Kavakli. All rights reserved.
-
-Commercial use, redistribution, and modification require prior written consent and payment of a licensing fee. See the `LICENSE` file for full terms.
+Excel export uses SheetJS Community Edition; the PDF viewer uses Mozilla PDF.js. See `THIRD_PARTY_NOTICES.md`.
