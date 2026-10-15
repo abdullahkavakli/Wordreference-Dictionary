@@ -25,8 +25,9 @@ want to change X").
 ```sh
 git clone https://github.com/abdullahkavakli/Wordreference-Dictionary.git
 cd Wordreference-Dictionary
-npm install                # one-time, installs jsdom for tests
+npm install                # one-time, installs jsdom + playwright-core (dev only)
 npm test                   # 37 tests, ~6s
+npm run test:e2e           # headed browser checks, ~2 min (see below)
 ```
 
 To load the unpacked extension in Chrome:
@@ -241,16 +242,39 @@ node --test --test-name-pattern="addFavorite stores" tests/favorites.test.js
 ### What's not covered (intentional)
 
 - popup.js, options.js, content.js bubble rendering, pdf-viewer.js —
-  too tangled with Chrome APIs and the DOM to unit-test. Caught by
-  manual testing in Chrome.
+  too tangled with Chrome APIs and the DOM to unit-test. Covered by the
+  browser tests below.
 - background.js service worker — relies on Chrome's event lifecycle.
   Same.
 - manifest, locales, CSP — Chrome validates these on load.
 
-If you want to add browser-driven tests later: Puppeteer or Playwright
-can load the extension via `--load-extension=` and drive it. Setup is
-heavy (~30 min); per-test runs are slow (~1s). Worth it if you start
-shipping risky UI changes regularly. Not now.
+### Browser tests (headed)
+
+```sh
+npm run test:e2e   # ~2 min; opens Chromium windows (needs a desktop session)
+```
+
+`tests/e2e/` drives the real extension with Playwright: popup, in-page
+bubble, settings page (delete/export/clear), favorites saved from
+several pages at once, English mode, the Alt+X injection list, and the
+bubble on English and Turkish Wikipedia articles. Each run loads the
+store payload (tracked files minus `export-ignore`, uncommitted edits
+included; `git add` new files first) into a fresh profile and prints
+where it saved screenshots.
+
+- Run headed. WordReference answers headless Chrome with 403, so
+  `HEADLESS=1` only exercises the steps that don't look anything up.
+- Uses live WordReference and Wikipedia, so it needs network access and
+  isn't part of `npm test` or CI.
+- Needs Playwright's Chromium build. If it's missing, run
+  `node node_modules/playwright-core/cli.js install chromium`.
+  `CHROME_PATH` points the tests at another Chromium instead.
+- Not covered: Chrome's own command shortcuts (a test can't press
+  Alt+X/Alt+Z as browser shortcuts), the PDF viewer with a real PDF, and
+  audio.
+- Alt + double-click on a word inside a link never reaches the page:
+  Chrome doesn't deliver that double-click. The Wikipedia checks skip
+  linked words; Alt+Q works on them.
 
 ---
 
@@ -345,7 +369,8 @@ This codebase ships in versioned releases roughly aligned with semver:
 
 Steps for any release:
 
-1. Land all the work on `main`. Make sure `npm test` is green.
+1. Land all the work on `main`. Make sure `npm test` is green and
+   `npm run test:e2e` passes.
 2. Bump `manifest.json` `"version"`. The `info.html` footer reads from the
    manifest at runtime, so there is nothing to edit there.
 3. Optional: bump `package.json` `"version"` to match.
@@ -376,8 +401,8 @@ git archive --format=zip -o dist/wrdict-chrome-store-vX.Y.Z.zip vX.Y.Z
   don't linger.
 - Committed dev-only files are marked `export-ignore` in
   `.gitattributes`: `*.md`, `tests/`, `.github/`, `package*.json`,
-  `.gitignore`, `.gitattributes`. A new dev-only file needs a line
-  there.
+  `.gitignore`, `.gitattributes`, `.npmrc`. A new dev-only file needs a
+  line there.
 - Builds go to `dist/` (gitignored), never the repo root.
 
 Verify before uploading:
@@ -483,10 +508,16 @@ the "overlapping changes from several pages" test).
 Node 22+ rejects a bare directory argument to `--test`. The script
 uses `tests/*.test.js` shell glob. Fixed in commit `848176e`.
 
-Develop and run tests in WSL (or Linux/macOS), where npm runs scripts
-in `sh` and the shell expands the glob. Native Windows npm uses
-`cmd.exe`, which doesn't, so there `npm test` fails on Node 18/20 with
-"Could not find '…/tests/*.test.js'".
+Run tests on Linux, macOS or WSL, where npm runs scripts in `sh` and
+the shell expands the glob. Native Windows npm uses `cmd.exe`, which
+doesn't, so there `npm test` fails on Node 18/20 with "Could not find
+'…/tests/*.test.js'".
+
+### `npm install` fails with `EPERM ... symlink`
+
+Some synced or network drives don't support symlinks, and npm links
+package CLIs into `node_modules/.bin`. The repo's `.npmrc` sets `bin-links=false` to skip those links; no npm script needs
+them. To run Playwright's CLI, call `node node_modules/playwright-core/cli.js`.
 
 ### "Cannot use require() of ES Module" when running tests
 
@@ -546,9 +577,10 @@ is vendored or hand-written.
 | Package | Version | Used by | Why |
 |---|---|---|---|
 | `jsdom` | `^24.1.3` | `tests/parser.test.js` | Provides a `Document` for testing the WR HTML parsers. Pinned to v24 because v29+ pulls ESM-only deps that don't work on Node 18. |
+| `playwright-core` | `1.63.0` | `tests/e2e/` | Drives Chromium for the browser tests. Pinned exactly: each version expects its own Chromium build. Needs Node 20+; on CI's Node 18 job npm only warns, since `npm test` doesn't load it. |
 
-That's it. Tests use Node's built-in `node:test`, `node:assert`,
-`node:vm`, and `node:fs` — no additional runner needed.
+Unit tests use Node's built-in `node:test`, `node:assert`, `node:vm`,
+and `node:fs` — no additional runner needed.
 
 ---
 
