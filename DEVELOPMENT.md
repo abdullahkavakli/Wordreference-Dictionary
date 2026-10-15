@@ -26,7 +26,7 @@ want to change X").
 git clone https://github.com/abdullahkavakli/Wordreference-Dictionary.git
 cd Wordreference-Dictionary
 npm install                # one-time, installs jsdom for tests
-npm test                   # 31 tests, ~6s
+npm test                   # 37 tests, ~6s
 ```
 
 To load the unpacked extension in Chrome:
@@ -52,8 +52,8 @@ reload (not just refresh the popup).
 | First-install welcome screen | `welcome.html` (self-contained styles) |
 | In-page translation bubble (Alt+X / Alt+Q / Alt+dblclick) | `scripts/content.js` |
 | Right-click context menu / keyboard command handlers | `scripts/background.js` |
-| Favorites storage API | `scripts/favorites.js` (cover any change with a test in `tests/favorites.test.js`) |
-| WR HTML parser (`parseWR`, `parseEnDef`, `extractIPA`) | Two copies; change both: `scripts/content.js` (bubble, covered by `tests/parser.test.js`) and `scripts/popup.js` (popup, untested) |
+| Favorites storage API | `scripts/favorites.js` (runs in the background service worker; cover any change with a test in `tests/favorites.test.js`) |
+| WR HTML parser (`parseWR`, `parseEnDef`, `extractIPA`) | `scripts/parser.js`, shared by the popup and the bubble — covered by `tests/parser.test.js` |
 | PDF viewer page | `pdf-viewer.html` + `scripts/pdf-viewer.js` |
 | PDF viewer toggle behavior | `scripts/options.js` (UI) + `scripts/background.js` (`syncPdfViewerRule`) |
 | Permissions, CSP, content-script matches, commands | `manifest.json` |
@@ -182,7 +182,7 @@ test('describes what should be true', () => {
 
 For tests that load production source code into a sandbox, copy the
 `vm`/`chrome`/`window` mock setup from `tests/favorites.test.js`. For
-DOM-driven tests, copy the regex-extract pattern from
+DOM-driven tests, copy the vm + jsdom pattern from
 `tests/parser.test.js`.
 
 `assert.deepEqual` (non-strict) is preferred over `deepStrictEqual`
@@ -212,9 +212,9 @@ npm test
 
 Output looks like:
 ```
-1..31
-# tests 31
-# pass 31
+1..37
+# tests 37
+# pass 37
 # fail 0
 # duration_ms 6142
 ```
@@ -235,8 +235,8 @@ node --test --test-name-pattern="addFavorite stores" tests/favorites.test.js
 
 | Module | Test file | Tests | What's exercised |
 |---|---|---|---|
-| `scripts/favorites.js` | `tests/favorites.test.js` | 17 | makeFavoriteId normalization, add (success/dup/invalid/aliased fields), remove (hit/miss), clear, list (sort order), isFavorite[Id], legacy schema migration, dedup + invalid-item drop, 5000-cap eviction, serialization queue (50 concurrent + interleave) |
-| `scripts/content.js` parsers | `tests/parser.test.js` | 14 | `parseWR` (empty, single, multi-entry, em/sup stripping, no-ToWrd skip), `parseEnDef` (RH + Collins entry shapes, multi-example join), `extractIPA` (us/uk dialect, fallback, null, respelling skip) |
+| `scripts/favorites.js` | `tests/favorites.test.js` | 21 | makeFavoriteId normalization, add (success/dup/invalid/aliased fields), remove (hit/miss), clear, list (sort order), isFavorite[Id], legacy schema migration, dedup + invalid-item drop, 5000-cap eviction, serialization queue (50 concurrent + interleave), page copies forwarding to the service worker (results, errors, unreachable worker, overlapping writes from several pages) |
+| `scripts/parser.js` | `tests/parser.test.js` | 16 | `parseWR` (empty, single, multi-entry, em/sup stripping, no-ToWrd skip, language-header skip), `parseEnDef` (RH + Collins entry shapes, multi-example join, section titles), `extractIPA` (us/uk dialect, fallback, null, respelling skip) |
 
 ### What's not covered (intentional)
 
@@ -288,8 +288,7 @@ already looks. Match the existing style.
 - Both styles of `chrome.*` call exist: `background.js` mostly
   `await`s promises, while `popup.js`, `content.js` and `options.js`
   mostly pass callbacks. Prefer promises in new code, or the existing
-  Promise helpers (`storageGet`/`storageSet` in `scripts/favorites.js`
-  and `scripts/content.js`).
+  Promise helpers (`storageGet`/`storageSet` in `scripts/favorites.js`).
 
 ### File-level
 
@@ -297,7 +296,8 @@ already looks. Match the existing style.
   `(() => { 'use strict'; ... })();` to keep the global scope clean.
   `scripts/background.js` doesn't use one. It's a classic (non-module)
   service worker, so its top-level declarations are worker globals, and
-  `import` won't work unless the manifest adds `"type": "module"`.
+  `import` won't work unless the manifest adds `"type": "module"`. It
+  loads `favorites.js` with `importScripts`.
 - Comments use `// ── Section ────────────────` boxes to separate
   logical groups inside a file. Match the existing pattern.
 
@@ -469,25 +469,24 @@ viewer with our own page exactly to sidestep this restriction.
 Cause: Two writers to `chrome.storage.local.favorites` overlap and the
 last write wins.
 
-`_serialized()` in `scripts/favorites.js` (commit `71b35ef`) queues
-add/remove/clear on a promise, but that queue only covers one JS
-context: the popup, the options page and each tab have their own.
-`readStore()` can also write (schema migration) outside the queue. So
-clearing favorites on the options page while a tab's bubble adds one
-can still lose a write. The unserialized fallback in
-`scripts/content.js` (`buildFavoritesApiFallback`) only runs when
-`favorites.js` isn't loaded; since `e2f2752` the on-demand injection
-path loads `favorites.js` first.
+Favorites storage has a single owner: the background service worker.
+It loads `scripts/favorites.js` with `importScripts`, and
+`_serialized()` there queues every read and write, so changes apply one
+at a time. The popup, options page, PDF viewer and content scripts load
+their own copy of `favorites.js`, which forwards each call to the worker
+as a `wr-favorites` message. Don't write `chrome.storage.local.favorites`
+from anywhere else: a second writer brings the lost-write bug back (see
+the "overlapping changes from several pages" test).
 
 ### `npm test` fails with `MODULE_NOT_FOUND` on `tests/`
 
 Node 22+ rejects a bare directory argument to `--test`. The script
 uses `tests/*.test.js` shell glob. Fixed in commit `848176e`.
 
-On Linux/macOS, npm runs scripts in `sh`, which expands the glob. On
-Windows, npm uses `cmd.exe`, which doesn't, so Node has to: that works
-on Node 21+ but fails on Node 18/20 with "Could not find
-'…/tests/*.test.js'". On Windows, use Node 22+ or run tests in WSL.
+Develop and run tests in WSL (or Linux/macOS), where npm runs scripts
+in `sh` and the shell expands the glob. Native Windows npm uses
+`cmd.exe`, which doesn't, so there `npm test` fails on Node 18/20 with
+"Could not find '…/tests/*.test.js'".
 
 ### "Cannot use require() of ES Module" when running tests
 
