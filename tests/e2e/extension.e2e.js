@@ -107,13 +107,17 @@ const LANG_LABELS = ['ingilizce', 'türkçe', 'english', 'turkish', 'inglés', '
     expect(!(await storedIds()).includes('entr::book'), 'still in storage');
   });
 
-  await step('settings: Export downloads an .xlsx file', async () => {
+  await step('settings: Export downloads an .xlsx file with the saved word', async () => {
     const [dl] = await Promise.all([settings.waitForEvent('download', { timeout: T }), settings.click('#favorites-export-btn')]);
     const file = path.join(out, dl.suggestedFilename());
     await dl.saveAs(file);
-    const size = fs.statSync(file).size;
-    expect(file.endsWith('.xlsx') && size > 1000, `${dl.suggestedFilename()} ${size} bytes`);
-    return `${size} bytes`;
+    expect(file.endsWith('.xlsx'), dl.suggestedFilename());
+    // Read it back with the bundled SheetJS: checks the content, not just the download.
+    const XLSX = require('../../scripts/xlsx.full.min.js');
+    const wb = XLSX.read(fs.readFileSync(file));
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    expect(rows.length === 1 && rows[0].Word === 'apple', `rows: ${JSON.stringify(rows)}`);
+    return `SheetJS ${XLSX.version}, row: ${rows[0].Word}`;
   });
 
   await step('settings: Clear empties the list (after confirm)', async () => {

@@ -568,7 +568,7 @@ is vendored or hand-written.
 
 | Where | What | Why |
 |---|---|---|
-| `scripts/xlsx.full.min.js` | SheetJS Community Edition | Excel `.xlsx` export of favorites. Lazy-loaded only when the user clicks Export. Could swap to `xlsx.mini.min.js` to save ~600 KB. |
+| `scripts/xlsx.full.min.js` | SheetJS Community Edition (0.20.3, from cdn.sheetjs.com — npm stops at 0.18.5) | Excel `.xlsx` export of favorites. Lazy-loaded only when the user clicks Export. Could swap to `xlsx.mini.min.js` to save ~600 KB. |
 | `vendor/pdfjs/pdf.min.mjs` | Mozilla PDF.js (4.7.76) | Renders PDFs in the opt-in viewer. Apache-2.0; attribution in `THIRD_PARTY_NOTICES.md` and `vendor/pdfjs/LICENSE`. |
 | `vendor/pdfjs/pdf.worker.min.mjs` | PDF.js worker | Required by PDF.js for off-main-thread rendering. |
 

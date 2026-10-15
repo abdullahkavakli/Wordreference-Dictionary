@@ -3,8 +3,9 @@
 ## SheetJS Community Edition (xlsx)
 
 - Package: `xlsx`
-- Version: `0.18.5`
-- Homepage: https://github.com/SheetJS/sheetjs
+- Version: `0.20.3`
+- Homepage: https://sheetjs.com (source: https://git.sheetjs.com/sheetjs/sheetjs)
+- Distribution: https://cdn.sheetjs.com/xlsx-0.20.3/ (npm's `xlsx` package stops at 0.18.5)
 - License: Apache-2.0
 - Source bundle in this project: `scripts/xlsx.full.min.js`
 
