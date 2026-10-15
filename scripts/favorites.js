@@ -1,6 +1,10 @@
 /**
  * WordReference Dictionary Extension
  * Favorites storage helpers (local only).
+ *
+ * Only the background service worker touches storage: its queue orders
+ * every favorites change. Pages and content scripts load their own copy of
+ * this file, which forwards each call to the worker.
  */
 (() => {
   'use strict';
@@ -147,20 +151,27 @@
     return store;
   }
 
-  async function listFavorites() {
-    const store = await readStore();
-    return store.items.slice();
+  // Reads are queued too: readStore() may write a schema migration.
+  function listFavorites() {
+    return _serialized(async () => {
+      const store = await readStore();
+      return store.items.slice();
+    });
   }
 
-  async function isFavorite(word, dir) {
+  function isFavorite(word, dir) {
     const id = makeFavoriteId(word, dir);
-    const store = await readStore();
-    return store.items.some(item => item.id === id);
+    return _serialized(async () => {
+      const store = await readStore();
+      return store.items.some(item => item.id === id);
+    });
   }
 
-  async function isFavoriteId(id) {
-    const store = await readStore();
-    return store.items.some(item => item.id === id);
+  function isFavoriteId(id) {
+    return _serialized(async () => {
+      const store = await readStore();
+      return store.items.some(item => item.id === id);
+    });
   }
 
   function addFavorite(candidate) {
@@ -204,16 +215,44 @@
     });
   }
 
-  window.WRFavorites = {
-    STORAGE_KEY,
-    SCHEMA_VERSION,
-    MAX_FAVORITES,
-    makeFavoriteId,
+  const storeApi = {
     listFavorites,
     isFavorite,
     isFavoriteId,
     addFavorite,
     removeFavorite,
     clearFavorites
+  };
+
+  // The service worker has no `window`; everywhere else, forward to it
+  // (handled by the 'wr-favorites' message in background.js).
+  const IS_SERVICE_WORKER = typeof window === 'undefined';
+
+  function callBackground(op, args) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type: 'wr-favorites', op, args }, response => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (!response || response.error) {
+          reject(new Error((response && response.error) || 'No response from background'));
+          return;
+        }
+        resolve(response.result);
+      });
+    });
+  }
+
+  const api = IS_SERVICE_WORKER
+    ? storeApi
+    : Object.fromEntries(Object.keys(storeApi).map(op => [op, (...args) => callBackground(op, args)]));
+
+  globalThis.WRFavorites = {
+    STORAGE_KEY,
+    SCHEMA_VERSION,
+    MAX_FAVORITES,
+    makeFavoriteId,
+    ...api
   };
 })();

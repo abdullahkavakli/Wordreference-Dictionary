@@ -1,10 +1,12 @@
 /**
  * Unit tests for scripts/favorites.js — the canonical chrome.storage.local
- * favorites API exposed as window.WRFavorites.
+ * favorites API exposed as WRFavorites.
  *
  * Strategy: load the production source verbatim into a Node vm sandbox with
- * `chrome` and `window` mocked. The same code that ships in the extension
- * is what the tests exercise — no rewrites, no shims.
+ * `chrome` mocked. Without a `window`, the file runs as it does in the
+ * background service worker (the only storage owner); with one, it runs as
+ * a page/content-script copy that forwards calls to the worker. The same
+ * code that ships in the extension is what the tests exercise.
  */
 
 'use strict';
@@ -50,28 +52,43 @@ function makeChromeMock() {
   };
 }
 
+const SANDBOX_GLOBALS = {
+  Promise,
+  Set,
+  Array,
+  Object,
+  Number,
+  String,
+  Date,
+  Error,
+  queueMicrotask,
+  setTimeout
+};
+
 function loadFavorites(initialStore) {
   const chromeMock = makeChromeMock();
   if (initialStore !== undefined) {
     chromeMock.storage.local._data.favorites = initialStore;
   }
-  const windowMock = {};
-  const ctx = vm.createContext({
-    window: windowMock,
-    chrome: chromeMock,
-    Promise,
-    Set,
-    Array,
-    Object,
-    Number,
-    String,
-    Date,
-    Error,
-    queueMicrotask,
-    setTimeout
-  });
+  const ctx = vm.createContext({ ...SANDBOX_GLOBALS, chrome: chromeMock });
   vm.runInContext(FAVORITES_SRC, ctx);
-  return { api: windowMock.WRFavorites, mock: chromeMock };
+  return { api: ctx.WRFavorites, mock: chromeMock };
+}
+
+// A copy of favorites.js as a page or content script loads it: it has a
+// `window`, and chrome.runtime.sendMessage reaches `worker` the way the
+// 'wr-favorites' handler in background.js does.
+function loadForwardingCopy(worker) {
+  const runtime = {
+    lastError: null,
+    sendMessage(msg, cb) {
+      worker[msg.op](...msg.args)
+        .then(result => cb({ result }), err => cb({ error: err.message }));
+    }
+  };
+  const ctx = vm.createContext({ ...SANDBOX_GLOBALS, window: {}, chrome: { runtime } });
+  vm.runInContext(FAVORITES_SRC, ctx);
+  return ctx.WRFavorites;
 }
 
 // ── makeFavoriteId ─────────────────────────────────────────────────────────
@@ -282,4 +299,61 @@ test('concurrent removeFavorite + addFavorite stay consistent', async () => {
 
   const ids = mock.storage.local._data.favorites.items.map(i => i.id).sort();
   assert.deepEqual(ids, ['enfr::keep', 'enfr::late']);
+});
+
+// ── Page/content-script copies forward to the service worker ───────────────
+
+test('a page copy forwards calls to the service worker', async () => {
+  const { api: worker, mock } = loadFavorites();
+  const page = loadForwardingCopy(worker);
+
+  const result = await page.addFavorite({ word: 'Hello', dir: 'enfr' });
+  assert.equal(result.added, true);
+  assert.equal(await page.isFavoriteId('enfr::hello'), true);
+  assert.equal(await page.removeFavorite('enfr::missing'), false);
+  assert.equal(mock.storage.local._data.favorites.items.length, 1);
+  // Pure helper: computed locally, no message needed.
+  assert.equal(page.makeFavoriteId('Hi', 'EnFr'), 'enfr::hi');
+});
+
+test('a page copy rejects with the service worker\'s error', async () => {
+  const { api: worker } = loadFavorites();
+  const page = loadForwardingCopy(worker);
+  await assert.rejects(page.addFavorite({}), /Invalid favorite data/);
+});
+
+test('a page copy rejects when the service worker is unreachable', async () => {
+  const runtime = {
+    lastError: null,
+    sendMessage(_msg, cb) {
+      runtime.lastError = { message: 'Could not establish connection.' };
+      cb(undefined);
+      runtime.lastError = null;
+    }
+  };
+  const ctx = vm.createContext({ ...SANDBOX_GLOBALS, window: {}, chrome: { runtime } });
+  vm.runInContext(FAVORITES_SRC, ctx);
+  await assert.rejects(ctx.WRFavorites.listFavorites(), /Could not establish connection/);
+});
+
+test('overlapping changes from several pages are not lost', async () => {
+  // Regression: the popup, options page and each tab used to write storage
+  // independently, so overlapping writes could drop each other's changes.
+  const { api: worker, mock } = loadFavorites();
+  const tab = loadForwardingCopy(worker);
+  const popup = loadForwardingCopy(worker);
+  const options = loadForwardingCopy(worker);
+  await worker.addFavorite({ word: 'old', dir: 'enfr', createdAt: 1 });
+
+  await Promise.all([
+    ...Array.from({ length: 25 }, (_, i) =>
+      tab.addFavorite({ word: `t${i}`, dir: 'enfr', createdAt: i + 2 })),
+    ...Array.from({ length: 25 }, (_, i) =>
+      popup.addFavorite({ word: `p${i}`, dir: 'enfr', createdAt: i + 100 })),
+    options.removeFavorite('enfr::old')
+  ]);
+
+  const ids = mock.storage.local._data.favorites.items.map(i => i.id);
+  assert.equal(ids.length, 50);
+  assert.ok(!ids.includes('enfr::old'));
 });

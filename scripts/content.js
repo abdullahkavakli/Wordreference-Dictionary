@@ -13,136 +13,7 @@
   const FETCH_BACKOFF_MS = 300;
   const HEDGE_OFFSETS_MS = [0, 1100, 1700];
 
-  function buildFavoritesApiFallback() {
-    const STORAGE_KEY = 'favorites';
-    const SCHEMA_VERSION = 1;
-    const MAX_FAVORITES = 5000;
-
-    function normalizeWord(word) {
-      return String(word || '').trim().toLowerCase();
-    }
-
-    function normalizeDir(dir) {
-      return String(dir || '').trim().toLowerCase();
-    }
-
-    function makeFavoriteId(word, dir) {
-      return `${normalizeDir(dir)}::${normalizeWord(word)}`;
-    }
-
-    function storageGet(query) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.get(query, result => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          resolve(result || {});
-        });
-      });
-    }
-
-    function storageSet(values) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.set(values, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          resolve();
-        });
-      });
-    }
-
-    function normalizeItem(item) {
-      if (!item || typeof item !== 'object') return null;
-      const word = String(item.word || '').trim();
-      const dir = String(item.dir || '').trim();
-      if (!word || !dir) return null;
-      return {
-        id: item.id || makeFavoriteId(word, dir),
-        word,
-        ipa: String(item.ipa || '').trim(),
-        explanation: String(item.explanation || '').trim(),
-        dir,
-        langPair: String(item.langPair || '').trim(),
-        source: String(item.source || '').trim(),
-        url: String(item.url || '').trim(),
-        createdAt: Number(item.createdAt) || Date.now()
-      };
-    }
-
-    async function readStore() {
-      const defaults = { [STORAGE_KEY]: { schemaVersion: SCHEMA_VERSION, items: [] } };
-      const result = await storageGet(defaults);
-      let store = result[STORAGE_KEY];
-
-      if (Array.isArray(store)) {
-        store = { schemaVersion: SCHEMA_VERSION, items: store };
-      }
-
-      if (!store || typeof store !== 'object') {
-        store = { schemaVersion: SCHEMA_VERSION, items: [] };
-      }
-
-      if (!Array.isArray(store.items)) store.items = [];
-      if (store.schemaVersion !== SCHEMA_VERSION) store.schemaVersion = SCHEMA_VERSION;
-
-      const deduped = [];
-      const seen = new Set();
-      for (const raw of store.items) {
-        const item = normalizeItem(raw);
-        if (!item || seen.has(item.id)) continue;
-        seen.add(item.id);
-        deduped.push(item);
-      }
-      deduped.sort((a, b) => b.createdAt - a.createdAt);
-      if (deduped.length > MAX_FAVORITES) deduped.length = MAX_FAVORITES;
-      store.items = deduped;
-      return store;
-    }
-
-    async function writeStore(store) {
-      await storageSet({ [STORAGE_KEY]: store });
-    }
-
-    async function isFavoriteId(id) {
-      const store = await readStore();
-      return store.items.some(item => item.id === id);
-    }
-
-    async function addFavorite(candidate) {
-      const item = normalizeItem(candidate);
-      if (!item) throw new Error('Invalid favorite data');
-      const store = await readStore();
-      const existing = store.items.find(entry => entry.id === item.id);
-      if (existing) return { added: false, item: existing };
-      store.items.unshift(item);
-      if (store.items.length > MAX_FAVORITES) {
-        store.items.length = MAX_FAVORITES;
-      }
-      await writeStore(store);
-      return { added: true, item };
-    }
-
-    async function removeFavorite(id) {
-      const store = await readStore();
-      const next = store.items.filter(item => item.id !== id);
-      if (next.length === store.items.length) return false;
-      store.items = next;
-      await writeStore(store);
-      return true;
-    }
-
-    return {
-      makeFavoriteId,
-      isFavoriteId,
-      addFavorite,
-      removeFavorite
-    };
-  }
-
-  const favoritesApi = window.WRFavorites || buildFavoritesApiFallback();
+  const favoritesApi = window.WRFavorites || null;
 
   // ── Settings ────────────────────────────────────────────────────────────────
 
@@ -413,7 +284,7 @@
 
   function buildContentFavoriteCandidate(term, dir, ipa, explanation) {
     const word = String(term || '').trim();
-    if (!word || !dir) return null;
+    if (!word || !dir || !favoritesApi) return null;
     const id = favoritesApi.makeFavoriteId(word, dir);
     return {
       id,

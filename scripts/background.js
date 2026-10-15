@@ -7,6 +7,13 @@
 
 const WR_BASE = 'https://www.wordreference.com';
 
+// Favorites storage runs only here; pages and content scripts forward their
+// calls through the 'wr-favorites' message (see scripts/favorites.js).
+importScripts('/scripts/favorites.js');
+const FAVORITES_OPS = new Set([
+  'listFavorites', 'isFavorite', 'isFavoriteId', 'addFavorite', 'removeFavorite', 'clearFavorites'
+]);
+
 // ── Context menu ─────────────────────────────────────────────────────────────
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -131,7 +138,8 @@ async function fetchWRPage(url) {
 
 // Single message listener: with multiple listeners (one of them async) Chrome
 // closes the port before an async sendResponse fires, so all WR messaging — the
-// page→background fetch and the Alt+<key> popup relay — is handled here.
+// page→background fetch, favorites calls and the Alt+<key> popup relay — is
+// handled here.
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg) return;
 
@@ -139,6 +147,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     fetchWRPage(msg.url)
       .then(html => sendResponse({ html }))
       .catch(err => sendResponse({ error: String((err && err.message) || err), status: err && err.status }));
+    return true; // keep the channel open for the async response
+  }
+
+  if (msg.type === 'wr-favorites' && FAVORITES_OPS.has(msg.op)) {
+    WRFavorites[msg.op](...(Array.isArray(msg.args) ? msg.args : []))
+      .then(result => sendResponse({ result }))
+      .catch(err => sendResponse({ error: String((err && err.message) || err) }));
     return true; // keep the channel open for the async response
   }
 
