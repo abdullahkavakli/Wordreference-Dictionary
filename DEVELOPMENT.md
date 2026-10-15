@@ -522,8 +522,9 @@ them. To run Playwright's CLI, call `node node_modules/playwright-core/cli.js`.
 ### "Cannot use require() of ES Module" when running tests
 
 `jsdom@29+` pulls in ESM-only deps incompatible with Node 18. Pinned
-to `jsdom@24` in `package.json`. If you upgrade jsdom and CI breaks
-on Node 18, downgrade.
+to `jsdom@24` in `package.json` from when CI still ran Node 18 (CI now
+runs Node 22 and 24). If you upgrade jsdom, run `npm test` on every
+Node version CI uses.
 
 ### Toolbar icon looks blurry
 
@@ -577,7 +578,7 @@ is vendored or hand-written.
 | Package | Version | Used by | Why |
 |---|---|---|---|
 | `jsdom` | `^24.1.3` | `tests/parser.test.js` | Provides a `Document` for testing the WR HTML parsers. Pinned to v24 because v29+ pulls ESM-only deps that don't work on Node 18. |
-| `playwright-core` | `1.63.0` | `tests/e2e/` | Drives Chromium for the browser tests. Pinned exactly: each version expects its own Chromium build. Needs Node 20+; on CI's Node 18 job npm only warns, since `npm test` doesn't load it. |
+| `playwright-core` | `1.63.0` | `tests/e2e/` | Drives Chromium for the browser tests. Pinned exactly: each version expects its own Chromium build. Needs Node 20+. |
 
 Unit tests use Node's built-in `node:test`, `node:assert`, `node:vm`,
 and `node:fs` — no additional runner needed.
