@@ -26,8 +26,8 @@ want to change X").
 git clone https://github.com/abdullahkavakli/Wordreference-Dictionary.git
 cd Wordreference-Dictionary
 npm install                # one-time, installs jsdom + playwright-core (dev only)
-npm test                   # 37 tests, ~6s
-npm run test:e2e           # headed browser checks, ~2 min (see below)
+npm test                   # 38 tests, ~6s
+npm run test:e2e           # headed browser checks, ~4 min (see below)
 ```
 
 To load the unpacked extension in Chrome:
@@ -55,10 +55,11 @@ reload (not just refresh the popup).
 | Right-click context menu / keyboard command handlers | `scripts/background.js` |
 | Favorites storage API | `scripts/favorites.js` (runs in the background service worker; cover any change with a test in `tests/favorites.test.js`) |
 | WR HTML parser (`parseWR`, `parseEnDef`, `extractIPA`) | `scripts/parser.js`, shared by the popup and the bubble — covered by `tests/parser.test.js` |
-| PDF viewer page | `pdf-viewer.html` + `scripts/pdf-viewer.js` |
+| PDF viewer (opt-in) | `pdf-viewer.html` + `scripts/pdf-viewer.js` forward `.pdf` links to Mozilla's viewer in `vendor/pdfjs/web/`; `scripts/pdf-bridge.js` sets it up and opens the file. Don't edit `vendor/pdfjs/` by hand: see [Updating PDF.js](#updating-pdfjs) |
+| Right-click lookup in Chrome's own PDF viewer | `scripts/background.js` (`lookupTermFromMenu`) + `scripts/content.js` (`WR_LOOKUP_TERM`) |
 | PDF viewer toggle behavior | `scripts/options.js` (UI) + `scripts/background.js` (`syncPdfViewerRule`) |
 | Permissions, CSP, content-script matches, commands | `manifest.json` |
-| Localized strings | `_locales/<lang>/messages.json` (en is master at 59 keys) |
+| Localized strings | `_locales/<lang>/messages.json` (en is master at 51 keys) |
 | Color palette / popup styling | `styles/main.css` (CSS variables at the top); other copies listed under [CSS](#css) |
 | Loading spinner | `styles/loading.css` |
 | Third-party attribution | `THIRD_PARTY_NOTICES.md` |
@@ -213,9 +214,9 @@ npm test
 
 Output looks like:
 ```
-1..37
-# tests 37
-# pass 37
+1..38
+# tests 38
+# pass 38
 # fail 0
 # duration_ms 6142
 ```
@@ -237,11 +238,11 @@ node --test --test-name-pattern="addFavorite stores" tests/favorites.test.js
 | Module | Test file | Tests | What's exercised |
 |---|---|---|---|
 | `scripts/favorites.js` | `tests/favorites.test.js` | 21 | makeFavoriteId normalization, add (success/dup/invalid/aliased fields), remove (hit/miss), clear, list (sort order), isFavorite[Id], legacy schema migration, dedup + invalid-item drop, 5000-cap eviction, serialization queue (50 concurrent + interleave), page copies forwarding to the service worker (results, errors, unreachable worker, overlapping writes from several pages) |
-| `scripts/parser.js` | `tests/parser.test.js` | 16 | `parseWR` (empty, single, multi-entry, em/sup stripping, no-ToWrd skip, language-header skip), `parseEnDef` (RH + Collins entry shapes, multi-example join, section titles), `extractIPA` (us/uk dialect, fallback, null, respelling skip) |
+| `scripts/parser.js` | `tests/parser.test.js` | 17 | `parseHTML` (drops inline handlers), `parseWR` (empty, single, multi-entry, em/sup stripping, no-ToWrd skip, language-header skip), `parseEnDef` (RH + Collins entry shapes, multi-example join, section titles), `extractIPA` (us/uk dialect, fallback, null, respelling skip) |
 
 ### What's not covered (intentional)
 
-- popup.js, options.js, content.js bubble rendering, pdf-viewer.js —
+- popup.js, options.js, content.js bubble rendering, the PDF viewer glue —
   too tangled with Chrome APIs and the DOM to unit-test. Covered by the
   browser tests below.
 - background.js service worker — relies on Chrome's event lifecycle.
@@ -251,13 +252,17 @@ node --test --test-name-pattern="addFavorite stores" tests/favorites.test.js
 ### Browser tests (headed)
 
 ```sh
-npm run test:e2e   # ~2 min; opens Chromium windows (needs a desktop session)
+npm run test:e2e   # ~4 min; opens Chromium windows (needs a desktop session)
 ```
 
 `tests/e2e/` drives the real extension with Playwright: popup, in-page
 bubble, settings page (delete/export/clear), favorites saved from
-several pages at once, English mode, the Alt+X injection list, and the
-bubble on English and Turkish Wikipedia articles. Each run loads the
+several pages at once, English mode, the Alt+X injection list, the
+bubble on English and Turkish Wikipedia articles, and PDFs: the PDF.js
+viewer (text lining up with the page, double-click, Alt + double-click,
+Alt+X, right-click, print, save, zoom, page buttons, odd addresses,
+`#page=`, a local `file://` PDF, a failed load) and the right-click
+bubble and Alt+X box in Chrome's own viewer. Each run loads the
 store payload (tracked files minus `export-ignore`, uncommitted edits
 included; `git add` new files first) into a fresh profile and prints
 where it saved screenshots.
@@ -269,9 +274,14 @@ where it saved screenshots.
 - Needs Playwright's Chromium build. If it's missing, run
   `node node_modules/playwright-core/cli.js install chromium`.
   `CHROME_PATH` points the tests at another Chromium instead.
-- Not covered: Chrome's own command shortcuts (a test can't press
-  Alt+X/Alt+Z as browser shortcuts), the PDF viewer with a real PDF, and
-  audio.
+- Not covered: pressing Chrome's own command shortcuts and right-click
+  menu (a test can't; the PDF checks call `lookupSelectionInTab` and
+  `lookupTermFromMenu` in the service worker instead), and audio.
+- The PDF checks give the test copy `<all_urls>` up front (what turning on
+  the viewer in settings asks for), build their PDFs with headless
+  Chromium, and serve them from a local server. Unpacked copies get
+  "Allow access to file URLs" by default, which the `file://` check
+  relies on; store installs need the user to turn it on.
 - Alt + double-click on a word inside a link never reaches the page:
   Chrome doesn't deliver that double-click. The Wikipedia checks skip
   linked words; Alt+Q works on them.
@@ -287,7 +297,7 @@ where it saved screenshots.
 | Options page (`info.html`) | Right-click the page → Inspect. Or open it via `chrome://extensions` → **Details** → **Extension options**. |
 | Welcome page (`welcome.html`) | Open `chrome-extension://<extension-id>/welcome.html` in any tab → Inspect normally. The store build's ID is `iejcondpdpcmgfiejidjbhcgloepemmd`; an unpacked build gets its own ID, shown on its card in `chrome://extensions`. |
 | In-page bubble (`scripts/content.js`) | Open DevTools on the host page (the website you're translating on). `content.js` runs in an isolated world but you can see its console output and inspect `#wr-selection-popup` in the host page DOM. |
-| PDF viewer (`pdf-viewer.html`) | Right-click anywhere in the viewer → Inspect. The viewer is a normal extension page so you get full DevTools. |
+| PDF viewer (`vendor/pdfjs/web/viewer.html`) | Right-click anywhere in the viewer → Inspect. It's a normal extension page, so you get full DevTools; `PDFViewerApplication` is the viewer's global. |
 | Storage contents | Service worker DevTools → **Application** tab → **Storage → Extension Storage**. Both `sync` and `local` are inspectable and editable. |
 | Permissions in effect | `chrome://extensions` → **Details** for this extension. Active and granted optional permissions are listed. |
 | Keyboard shortcut conflicts | `chrome://extensions/shortcuts` — Chrome shows what's actually bound (suggested keys may be downgraded if conflicting). |
@@ -338,7 +348,7 @@ already looks. Match the existing style.
 
 - Color palette lives in `:root` CSS variables at the top of
   `styles/main.css`, with separate `:root` copies in the `<style>`
-  blocks of `info.html`, `welcome.html` and `pdf-viewer.html`. The
+  blocks of `info.html` and `welcome.html`. The
   in-page bubble CSS in `scripts/content.js` hard-codes the same hex
   values. A palette change has to touch all of them.
 - Match the existing warm-parchment aesthetic — don't introduce
@@ -419,7 +429,10 @@ The ZIP should NOT contain `.github/`, `tests/`, `package*.json`, or
 any `.md` file (including this one, `README.md`, and
 `THIRD_PARTY_NOTICES.md`). `LICENSE` is included. The Apache-2.0 text required by the vendored
 SheetJS and PDF.js ships as `vendor/pdfjs/LICENSE`, and both bundles
-keep their copyright headers. Anything else is dead weight on user
+keep their copyright headers. The PDF.js viewer's other parts keep their
+license files next to them (`vendor/pdfjs/web/wasm/LICENSE_*`,
+`web/cmaps/LICENSE`, `web/standard_fonts/LICENSE_FOXIT`,
+`web/iccs/LICENSE`). Anything else is dead weight on user
 download size.
 
 ---
@@ -486,8 +499,12 @@ chrome:// pages, and the New Tab page).
 
 Fix: Don't. The `chrome.commands.onCommand` cascade in `scripts/background.js` is
 designed around this — each step has a try/catch and the next falls
-back. The PDF viewer feature (`pdf-viewer.html`) replaces Chrome's
-viewer with our own page exactly to sidestep this restriction.
+back. The PDF viewer feature replaces Chrome's viewer with Mozilla's
+PDF.js viewer, inside the extension, exactly to sidestep this
+restriction. Without it, `content.js` still runs in a PDF tab's top
+document (https only), just not inside the PDF: the right-click menu
+shows the bubble over the PDF, and Alt+X offers a box to paste a word
+into.
 
 ### Storage write seems to disappear
 
@@ -570,8 +587,33 @@ is vendored or hand-written.
 | Where | What | Why |
 |---|---|---|
 | `scripts/xlsx.full.min.js` | SheetJS Community Edition (0.20.3, from cdn.sheetjs.com — npm stops at 0.18.5) | Excel `.xlsx` export of favorites. Lazy-loaded only when the user clicks Export. Could swap to `xlsx.mini.min.js` to save ~600 KB. |
-| `vendor/pdfjs/pdf.min.mjs` | Mozilla PDF.js (4.7.76) | Renders PDFs in the opt-in viewer. Apache-2.0; attribution in `THIRD_PARTY_NOTICES.md` and `vendor/pdfjs/LICENSE`. |
-| `vendor/pdfjs/pdf.worker.min.mjs` | PDF.js worker | Required by PDF.js for off-main-thread rendering. |
+| `vendor/pdfjs/` | Mozilla PDF.js viewer (6.4.299, legacy build) | The opt-in PDF viewer: Mozilla's own viewer (`web/viewer.html`) with the extension's scripts added. Built by `tools/update-pdfjs.mjs`. Apache-2.0; attribution in `THIRD_PARTY_NOTICES.md` and `vendor/pdfjs/LICENSE`. |
+
+### Updating PDF.js
+
+```sh
+npm run update-pdfjs -- 6.4.299   # a version from github.com/mozilla/pdf.js/releases
+npm run test:e2e
+```
+
+`tools/update-pdfjs.mjs` downloads the release's legacy build
+(`pdfjs-<version>-legacy-dist.zip`) and rebuilds `vendor/pdfjs/` from it:
+
+- Keeps only the viewer languages the extension ships; others fall back
+  to the viewer's built-in English.
+- Leaves out the WebAssembly files. The extension's CSP blocks
+  WebAssembly, so `pdf-bridge.js` turns `useWasm` off and PDF.js uses its
+  JavaScript image decoders.
+- Leaves out the Liberation fonts (GPL-2.0 with a font exception). With
+  system fonts on, the browser default, PDF.js never loads them.
+- Patches `web/viewer.html` three times: `style-src` gains
+  `'unsafe-inline'` for the bubble's `<style>` element, `connect-src`
+  gains `file:` so local PDFs can be read, and the extension's scripts
+  load before `</body>`. The script stops if a patch no longer matches.
+
+The legacy build supports Chrome 125+ (PDF.js FAQ), which is
+`minimum_chrome_version` in `manifest.json`. Check the FAQ again when
+updating.
 
 ### Dev-only (not in the shipped ZIP)
 

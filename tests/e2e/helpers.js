@@ -25,11 +25,19 @@ function buildPayload(dir) {
   execSync(`git archive ${ref} | tar -x -C "${dir}"`, { cwd: ROOT });
 }
 
-async function launch(name) {
+// allUrls: grant <all_urls> up front, as a user does when turning on the PDF
+// viewer in settings (a test can't click Chrome's permission prompt).
+async function launch(name, { allUrls = false } = {}) {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), `wrdict-e2e-${name}-`));
   const ext = path.join(work, 'extension');
   fs.mkdirSync(ext);
   buildPayload(ext);
+  if (allUrls) {
+    const file = path.join(ext, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+    manifest.host_permissions.push('<all_urls>');
+    fs.writeFileSync(file, JSON.stringify(manifest, null, 2));
+  }
 
   const headless = process.env.HEADLESS === '1';
   if (headless) console.warn('HEADLESS=1: WordReference rejects headless Chrome, so lookups will fail.');
@@ -49,6 +57,7 @@ async function launch(name) {
     context,
     sw,
     base: `chrome-extension://${sw.url().split('/')[2]}`,
+    ext,
     out: work,
     shot: (page, file) => page.screenshot({ path: path.join(work, `${file}.png`) }),
     storedIds

@@ -5,7 +5,8 @@
   "description": "Local-only dev manifest — used to run unit tests against the favorites and parser modules. The shipped extension does not consume this file.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "test:e2e": "node tests/e2e/extension.e2e.js && node tests/e2e/wikipedia.e2e.js"
+    "test:e2e": "node tests/e2e/extension.e2e.js && node tests/e2e/wikipedia.e2e.js && node tests/e2e/pdf.e2e.js",
+    "update-pdfjs": "node tools/update-pdfjs.mjs"
   },
   "devDependencies": {
     "jsdom": "^24.1.3",

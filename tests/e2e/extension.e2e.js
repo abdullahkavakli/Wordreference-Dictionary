@@ -177,6 +177,8 @@ const LANG_LABELS = ['ingilizce', 'türkçe', 'english', 'turkish', 'inglés', '
   await step('PDF viewer page loads the shared scripts', async () => {
     const pdf = await context.newPage();
     await pdf.goto(`${base}/pdf-viewer.html`);
+    await pdf.waitForURL(`${base}/vendor/pdfjs/web/viewer.html`, { timeout: T });
+    await pdf.waitForFunction(() => window.PDFViewerApplication?.initialized, null, { timeout: T });
     const t = await pdf.evaluate(() => `${typeof WRFavorites}/${typeof WRParser}`);
     await pdf.close();
     expect(t === 'object/object', t);

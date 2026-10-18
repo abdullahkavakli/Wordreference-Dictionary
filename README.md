@@ -20,7 +20,7 @@ Supported language pairs include Turkish, Spanish, Italian, Portuguese, French, 
 | **Favorites** | Save words from popup or in-page bubble; duplicates are blocked automatically. |
 | **Excel export** | Manage favorites on the settings page and export all favorites to `.xlsx` (Word, IPA, explanation). |
 | **Open in WR** | Click the WR logo in the popup to open full results on WordReference. |
-| **PDF support** *(opt-in)* | Enable in settings to open PDFs in a built-in viewer where Alt + double-click / Alt+Q / Alt+X work over the rendered text. |
+| **PDF support** | In Chrome's own PDF viewer, right-click a selected word for the bubble. For Alt + double-click / Alt+Q / Alt+X inside PDFs, turn on the PDF viewer in settings (opt-in; Mozilla PDF.js; local files too, with *Allow access to file URLs*). |
 
 ## Privacy & permissions
 

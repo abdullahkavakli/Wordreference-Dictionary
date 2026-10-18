@@ -15,6 +15,13 @@
 
   const favoritesApi = window.WRFavorites || null;
 
+  // Chrome's own PDF viewer: this document is only a shell around a viewer
+  // frame that extensions can't reach (no selection, clicks or keys from it).
+  const isChromePdfViewer = document.contentType === 'application/pdf';
+
+  // The extension's PDF.js viewer, which loads this file as a page script.
+  const isExtensionPage = location.protocol === 'chrome-extension:';
+
   // ── Settings ────────────────────────────────────────────────────────────────
 
   const defaultSettings = {
@@ -160,6 +167,7 @@
         outline: 2px solid #6f4e37;
         outline-offset: 2px;
       }
+      #${POPUP_ID}:focus { outline: none; }
       @media (prefers-reduced-motion: reduce) {
         #${POPUP_ID} .wr-fav-btn { transition: none; }
         #${POPUP_ID} .wr-fav-btn:hover:not(:disabled) { transform: none; }
@@ -467,15 +475,32 @@
     }
   }
 
-  async function showPopupForSelection(sourceTarget = null, prefetchedTerm = '') {
+  // Clicks inside Chrome's PDF viewer never reach this document, so the
+  // click-outside rule below can't close the bubble there. Focus the bubble
+  // instead: clicking back into the PDF takes focus away and closes it.
+  function closeWhenFocusLeaves(popup) {
+    popup.tabIndex = -1;
+    popup.addEventListener('focusout', event => {
+      if (!popup.contains(event.relatedTarget)) popup.remove();
+    });
+    popup.focus({ preventScroll: true });
+  }
+
+  // Top right, below Chrome's PDF toolbar: there's no selection to anchor to.
+  function pdfBubblePosition() {
+    return { x: window.scrollX + Math.max(16, window.innerWidth - 420), y: window.scrollY + 64 };
+  }
+
+  async function showPopupForSelection(sourceTarget = null, prefetchedTerm = '', fixedPos = null) {
     const term = prefetchedTerm || getSelectionText(sourceTarget);
     if (!term || term.length < 2) return;
 
-    const pos = getSelectionPosition(sourceTarget);
+    const pos = fixedPos || getSelectionPosition(sourceTarget);
     await ensureSettingsLoaded();
 
     const token = ++popupRequestToken;
     const popup = createPopup(pos);
+    if (isChromePdfViewer) closeWhenFocusLeaves(popup);
     const isMonolingual = settings.langPair === 'en';
     const dir = isMonolingual ? 'definition' : ('en' + settings.langPair);
     const url = `${WR_BASE}/${dir}/${encodeURIComponent(term)}`;
@@ -483,7 +508,7 @@
     try {
       const html = await fetchWRPage(url);
       if (!popupCanRender(popup, token)) return;
-      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const doc = WRParser.parseHTML(html);
       const ipa = extractIPA(doc);
       let favoriteCandidate = null;
 
@@ -642,8 +667,24 @@
     if (popup && !popup.contains(event.target)) removePopup();
   });
 
-  chrome.runtime.onMessage.addListener(msg => {
-    if (msg && msg.type === 'WR_SHOW_POPUP') showPopupForSelection();
+  // WR_SHOW_POPUP: Alt+X / Alt+Q (background.js, lookupSelectionInTab).
+  // WR_LOOKUP_TERM: the right-click menu (background.js, lookupTermFromMenu);
+  // only PDFs show the bubble, other pages leave it to open a new tab.
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (!msg || (msg.type !== 'WR_SHOW_POPUP' && msg.type !== 'WR_LOOKUP_TERM')) return;
+
+    if (msg.type === 'WR_SHOW_POPUP') {
+      const term = getSelectionText(null);
+      const shown = term.length >= 2;
+      if (shown) showPopupForSelection(null, term);
+      sendResponse({ shown, pdf: isChromePdfViewer });
+      return;
+    }
+
+    const term = String(msg.term || '').trim();
+    const shown = term.length >= 2 && (isChromePdfViewer || isExtensionPage);
+    if (shown) showPopupForSelection(null, term, isChromePdfViewer ? pdfBubblePosition() : null);
+    sendResponse({ shown });
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {

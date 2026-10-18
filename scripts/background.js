@@ -35,12 +35,26 @@ function wrLookupUrl(term) {
   return `${WR_BASE}/en${_bgLangPair}/${encodeURIComponent(term)}`;
 }
 
-chrome.contextMenus.onClicked.addListener((info) => {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'wr-lookup' && info.selectionText) {
-    const term = info.selectionText.trim();
-    chrome.tabs.create({ url: wrLookupUrl(term) });
+    lookupTermFromMenu(tab, info.selectionText.trim());
   }
 });
+
+// Chrome's own PDF viewer hides the PDF from extensions, but the menu still
+// gets the selected text: content.js shows the bubble over the PDF there, and
+// in the extension's PDF.js viewer (tabs.sendMessage reaches extension pages
+// in a tab too). Elsewhere it opens WordReference in a new tab, as before.
+// Named so the browser tests can call it.
+async function lookupTermFromMenu(tab, term) {
+  if (tab && tab.id >= 0) {
+    try {
+      const res = await chrome.tabs.sendMessage(tab.id, { type: 'WR_LOOKUP_TERM', term }, { frameId: 0 });
+      if (res && res.shown) return;
+    } catch { /* no content script in this tab */ }
+  }
+  chrome.tabs.create({ url: wrLookupUrl(term) });
+}
 
 // ── WordReference anti-bot cookie ───────────────────────────────────────────
 // WR's nginx gate replies with HTTP 418 + an inline script that sets
@@ -140,8 +154,13 @@ async function fetchWRPage(url) {
 // closes the port before an async sendResponse fires, so all WR messaging — the
 // page→background fetch, favorites calls and the Alt+<key> popup relay — is
 // handled here.
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg) return;
+
+  if (msg.type === 'wr-pdf-open-native' && sender.tab && /^(https?|file):/i.test(msg.url || '')) {
+    openPdfInChromeViewer(sender.tab.id, msg.url);
+    return;
+  }
 
   if (msg.type === 'wr-fetch' && typeof msg.url === 'string') {
     fetchWRPage(msg.url)
@@ -175,11 +194,24 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== 'show-translation-popup' && command !== 'quick-lookup-selection') return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab || !tab.id) return;
+  if (tab && tab.id) await lookupSelectionInTab(tab);
+});
 
-  // 1) Try the content script that's already running
+// Shows the bubble for the tab's selection, trying each way that can reach
+// it. Named so the browser tests can call it: they can't press Chrome's
+// command shortcuts.
+async function lookupSelectionInTab(tab) {
+  // In Chrome's own PDF viewer content.js runs in the tab but can't see the
+  // selection inside the PDF; it says so, and gets the search box instead.
+  const showOrOfferSearchBox = async () => {
+    const res = await chrome.tabs.sendMessage(tab.id, { type: 'WR_SHOW_POPUP' });
+    if (res && res.pdf && !res.shown) await showPdfSearchBox(tab);
+  };
+
+  // 1) Try the content script that's already running (also reaches the
+  //    extension's PDF.js viewer, which loads content.js as a page script)
   try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'WR_SHOW_POPUP' });
+    await showOrOfferSearchBox();
     return;
   } catch { /* no content script listener yet */ }
 
@@ -189,9 +221,9 @@ chrome.commands.onCommand.addListener(async (command) => {
       target: { tabId: tab.id },
       files: ['scripts/favorites.js', 'scripts/parser.js', 'scripts/content.js']
     });
-    await chrome.tabs.sendMessage(tab.id, { type: 'WR_SHOW_POPUP' });
+    await showOrOfferSearchBox();
     return;
-  } catch { /* restricted page — PDF viewer, chrome://, etc. */ }
+  } catch { /* restricted page — chrome://, another extension's page, etc. */ }
 
   // 3) Inline selection grab (all frames) — works for some restricted pages
   try {
@@ -207,6 +239,10 @@ chrome.commands.onCommand.addListener(async (command) => {
   } catch { /* truly inaccessible page */ }
 
   // 4) PDF / pages where selection is opaque: show a floating search box
+  await showPdfSearchBox(tab);
+}
+
+async function showPdfSearchBox(tab) {
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -268,7 +304,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       args: [WR_BASE, _bgLangPair]
     });
   } catch { /* truly inaccessible page */ }
-});
+}
 
 // ── Language pair setting ──────────────────────────────────────────────────────
 
@@ -308,7 +344,9 @@ async function syncPdfViewerRule() {
           redirect: { regexSubstitution: `${viewerUrl}?file=\\0` }
         },
         condition: {
-          regexFilter: '^https?://[^?#]*\\.pdf(\\?.*)?$',
+          // The URL includes any #fragment (e.g. #page=3); pdf-viewer.js passes it on.
+          // file:// PDFs match only while "Allow access to file URLs" is on.
+          regexFilter: '^(https?|file)://[^?#]*\\.pdf(\\?[^#]*)?(#.*)?$',
           resourceTypes: ['main_frame']
         }
       }]
@@ -317,6 +355,28 @@ async function syncPdfViewerRule() {
     await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [PDF_RULE_ID] });
   }
 }
+
+// "Open in Chrome's PDF viewer" (scripts/pdf-bridge.js): a session rule lets
+// this tab load the address without the redirect above. The rule ID is the
+// tab ID, so a repeat click replaces it, and closing the tab drops it.
+async function openPdfInChromeViewer(tabId, url) {
+  try {
+    await chrome.declarativeNetRequest.updateSessionRules({
+      removeRuleIds: [tabId],
+      addRules: [{
+        id: tabId,
+        priority: 2,
+        action: { type: 'allow' },
+        condition: { tabIds: [tabId], resourceTypes: ['main_frame'], urlFilter: `|${url.split('#')[0]}|` }
+      }]
+    });
+  } catch { /* still navigate; worst case the redirect brings the viewer back */ }
+  await chrome.tabs.update(tabId, { url });
+}
+
+chrome.tabs.onRemoved.addListener(tabId => {
+  chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] }).catch(() => {});
+});
 
 if (chrome.permissions && chrome.permissions.onRemoved) {
   chrome.permissions.onRemoved.addListener(syncPdfViewerRule);

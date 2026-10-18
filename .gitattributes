@@ -4,6 +4,7 @@
 /.npmrc export-ignore
 /.github export-ignore
 /tests export-ignore
+/tools export-ignore
 *.md export-ignore
 /package.json export-ignore
 /package-lock.json export-ignore

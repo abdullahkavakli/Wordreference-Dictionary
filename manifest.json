@@ -1,7 +1,7 @@
 {
    "author": "WordReference Dictionary Extension",
    "manifest_version": 3,
-   "minimum_chrome_version": "114",
+   "minimum_chrome_version": "125",
    "default_locale": "en",
    "name": "__MSG_extName__",
    "short_name": "__MSG_extShortName__",
@@ -36,7 +36,7 @@
 
    "web_accessible_resources": [
       {
-         "resources": [ "pdf-viewer.html", "vendor/pdfjs/*" ],
+         "resources": [ "pdf-viewer.html" ],
          "matches": [ "<all_urls>" ]
       }
    ],
