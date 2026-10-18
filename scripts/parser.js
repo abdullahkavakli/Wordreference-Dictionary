@@ -4,7 +4,8 @@
  * Proprietary License. Unauthorized redistribution prohibited.
  *
  * WR HTML parsers shared by the popup (popup.js) and the in-page bubble
- * (content.js). Pure functions of a parsed Document; no chrome.* access.
+ * (content.js). Pure functions of a parsed Document (see parseHTML); no
+ * chrome.* access.
  */
 (() => {
   'use strict';
@@ -166,5 +167,14 @@
     return ukIPA || usIPA;
   }
 
-  globalThis.WRParser = { parseWR, parseEnDef, extractIPA };
+  // Chrome 156+ logs a CSP error in extension pages for every inline handler
+  // (onclick="…") in HTML it parses, though none of them run. WR pages carry
+  // a few, so drop them first; callers only read text from the result.
+  function parseHTML(html) {
+    const clean = String(html).replace(/<[^>]+>/g,
+      tag => tag.replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, ''));
+    return new DOMParser().parseFromString(clean, 'text/html');
+  }
+
+  globalThis.WRParser = { parseHTML, parseWR, parseEnDef, extractIPA };
 })();

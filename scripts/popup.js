@@ -307,7 +307,7 @@ async function tryFetchAudioForWord(word, accent) {
   const dictCode = baseLang + 'en'; // Target -> English URL
   try {
     const html = await fetchWRPage(`${WR_BASE}/${dictCode}/${encodeURIComponent(word)}`);
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = WRParser.parseHTML(html);
     const files = extractWRAudioFiles(doc);
     return pickWRAudioFile(files, accent);
   } catch (_) {
@@ -493,7 +493,7 @@ async function searchWR(rawStr) {
     const html = await fetchWRPage(`${WR_BASE}/${dir}/${encodeURIComponent(str)}`);
     if (token !== _searchToken) return;
     document.getElementById('loading').style.display = 'none';
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = WRParser.parseHTML(html);
 
     let sections = null;
     let defSections = null;

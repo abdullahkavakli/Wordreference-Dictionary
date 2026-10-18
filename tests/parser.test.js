@@ -20,12 +20,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { JSDOM } = require('jsdom');
 
-const ctx = vm.createContext({});
+const ctx = vm.createContext({ DOMParser: new JSDOM('').window.DOMParser });
 vm.runInContext(
   fs.readFileSync(path.join(__dirname, '..', 'scripts', 'parser.js'), 'utf8'),
   ctx
 );
-const { parseWR, parseEnDef, extractIPA } = ctx.WRParser;
+const { parseHTML, parseWR, parseEnDef, extractIPA } = ctx.WRParser;
 
 // The bubble's flat view of the sectioned results (as content.js uses them).
 const entriesOf = doc => parseWR(doc).flatMap(section => section.entries);
@@ -34,6 +34,17 @@ const defsOf = doc => parseEnDef(doc).flatMap(section => section.defs);
 function html(body) {
   return new JSDOM(`<!doctype html><html><body>${body}</body></html>`).window.document;
 }
+
+// ── parseHTML ──────────────────────────────────────────────────────────────
+
+test('parseHTML drops inline handlers but keeps the text and other attributes', () => {
+  const doc = parseHTML(`<body onload="x()"><table id="WRD" class="WRD" onclick='y()'>
+    <tr><td class="FrWrd" onmouseover=z()><strong>book</strong></td></tr></table>
+    <p>read on=time, online</p></body>`);
+  assert.strictEqual(doc.querySelectorAll('[onload],[onclick],[onmouseover]').length, 0);
+  assert.strictEqual(doc.querySelector('#WRD.WRD .FrWrd strong').textContent, 'book');
+  assert.ok(doc.body.textContent.includes('read on=time, online'));
+});
 
 // ── parseWR ────────────────────────────────────────────────────────────────
 
