@@ -76,6 +76,15 @@
   "welcomeShortcutRightClick": {
     "message": "Bir kelime seçin, sağ tıklayın ve WordReference: '…' seçeneğini tıklayarak tam sonucu yeni sekmede açın."
   },
+  "welcomeKeyToolbarIcon": {
+    "message": "Araç çubuğu simgesi"
+  },
+  "welcomeKeyDoubleClick": {
+    "message": "çift tıklama"
+  },
+  "welcomeKeyRightClick": {
+    "message": "Sağ tık"
+  },
   "welcomeStep3Title": {
     "message": "3. Öğrendiklerinizi kaydedin"
   },

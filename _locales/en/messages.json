@@ -88,6 +88,18 @@
   "welcomeShortcutRightClick": {
     "message": "Select a word, right-click, then choose WordReference: '…' to open the full result in a new tab."
   },
+  "welcomeKeyToolbarIcon": {
+    "message": "Toolbar icon",
+    "description": "Welcome page: label beside the extension toolbar icon, one way to open the popup"
+  },
+  "welcomeKeyDoubleClick": {
+    "message": "double-click",
+    "description": "Welcome page: mouse action shown after 'Alt +', as in Alt + double-click"
+  },
+  "welcomeKeyRightClick": {
+    "message": "Right-click",
+    "description": "Welcome page: label for the right-click menu lookup"
+  },
   "welcomeStep3Title": {
     "message": "3. Save what you learn"
   },

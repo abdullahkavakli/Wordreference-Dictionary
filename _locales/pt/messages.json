@@ -16,6 +16,9 @@
   "welcomeTagline": { "message": "Pesquisas instantâneas inglês ↔ 18 idiomas, com tecnologia WordReference.com." },
   "welcomeOpenSettings": { "message": "Abrir configurações" },
   "welcomeVisitWR": { "message": "Visitar WordReference.com" },
+  "welcomeKeyToolbarIcon": { "message": "Ícone na barra de ferramentas" },
+  "welcomeKeyDoubleClick": { "message": "duplo clique" },
+  "welcomeKeyRightClick": { "message": "Clique direito" },
 
   "optionsSaved": { "message": "Salvo." },
   "optionsFavoritesEmpty": { "message": "Ainda não há favoritos." },

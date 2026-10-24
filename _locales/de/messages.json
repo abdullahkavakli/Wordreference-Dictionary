@@ -16,6 +16,9 @@
   "welcomeTagline": { "message": "Sofortige Englisch ↔ 18-Sprachen-Übersetzungen, betrieben von WordReference.com." },
   "welcomeOpenSettings": { "message": "Einstellungen öffnen" },
   "welcomeVisitWR": { "message": "WordReference.com besuchen" },
+  "welcomeKeyToolbarIcon": { "message": "Symbol in der Symbolleiste" },
+  "welcomeKeyDoubleClick": { "message": "Doppelklick" },
+  "welcomeKeyRightClick": { "message": "Rechtsklick" },
 
   "optionsSaved": { "message": "Gespeichert." },
   "optionsFavoritesEmpty": { "message": "Noch keine Favoriten." },
