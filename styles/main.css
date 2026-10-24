@@ -239,7 +239,7 @@ body {
 }
 
 .favorite-status {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--wr-positive);
   white-space: nowrap;
 }
@@ -393,7 +393,7 @@ td:lang(ar) {
 
 .popup-footer {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: #5f6873;
   margin-top: 10px;
   border-top: 1px solid var(--wr-line);
