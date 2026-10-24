@@ -8,6 +8,7 @@
   --wr-accent: #6f4e37;
   --wr-accent-strong: #533729;
   --wr-highlight: #f5f4f2;
+  --wr-header: #faf9f7;
   --wr-positive: #33553c;
   --wr-error: #d63b25;
   --wr-primary: #312d2a;
@@ -351,7 +352,7 @@ table thead {
 }
 
 table thead th {
-  background: var(--wr-highlight);
+  background: var(--wr-header);
   color: var(--wr-muted);
   font-family: "Trebuchet MS", "Gill Sans", sans-serif;
   font-size: 12px;
