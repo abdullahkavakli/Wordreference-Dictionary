@@ -68,6 +68,10 @@
   border-color: #f1c75c;
 }
 
+.alert a {
+  color: var(--wr-accent-strong);
+}
+
 table.table {
   width: 100%;
   border-collapse: collapse;
