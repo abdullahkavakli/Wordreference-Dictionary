@@ -53,7 +53,7 @@
     "message": "1. Dil çiftinizi seçin"
   },
   "welcomeStep1Body": {
-    "message": "İngilizce'den çevirmek istediğiniz dili — Türkçe, İspanyolca, Fransızca, Almanca ve 14 diğeri — ayarlar sayfasından seçin."
+    "message": "İngilizce'den çevirmek istediğiniz dili (Türkçe, İspanyolca, Fransızca, Almanca ve 14 diğeri) ayarlar sayfasından seçin."
   },
   "welcomeStep2Title": {
     "message": "2. Her yerde, her kelimeyi arayın"
@@ -89,7 +89,7 @@
     "message": "3. Öğrendiklerinizi kaydedin"
   },
   "welcomeStep3Body": {
-    "message": "Pencere veya sayfa içi balondan herhangi bir kelimeyi yıldızlayarak favorilerinize ekleyin. Listeyi ayarlar sayfasından yönetebilir ve Excel'e aktarabilirsiniz — kelime tekrarı için ideal."
+    "message": "Pencere veya sayfa içi balondan herhangi bir kelimeyi yıldızlayarak favorilerinize ekleyin. Listeyi ayarlar sayfasından yönetebilir ve Excel'e aktarabilirsiniz. Kelime tekrarı için ideal."
   },
   "welcomeOpenSettings": {
     "message": "Ayarları Aç"

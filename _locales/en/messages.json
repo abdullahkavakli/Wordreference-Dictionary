@@ -65,7 +65,7 @@
     "message": "1. Choose your language pair"
   },
   "welcomeStep1Body": {
-    "message": "Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page."
+    "message": "Pick the language you want English translated to (Spanish, French, German, Turkish, and 14 others) on the settings page."
   },
   "welcomeStep2Title": {
     "message": "2. Look up any word, anywhere"
@@ -80,7 +80,7 @@
     "message": "Select text on any web page, then press to show an in-page translation bubble."
   },
   "welcomeShortcutAltQ": {
-    "message": "Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken."
+    "message": "Same as Alt + X, for keyboard layouts where that shortcut is already taken."
   },
   "welcomeShortcutAltDblClick": {
     "message": "Hold Alt and double-click a word to translate it right where it sits."
@@ -104,7 +104,7 @@
     "message": "3. Save what you learn"
   },
   "welcomeStep3Body": {
-    "message": "Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review."
+    "message": "Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page. Perfect for vocabulary review."
   },
   "welcomeOpenSettings": {
     "message": "Open Settings"
