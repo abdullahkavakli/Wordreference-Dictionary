@@ -3,25 +3,29 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="welcomeTitle">Welcome to WordReference Dictionary</title>
   <style>
     :root {
       --wr-bg: #f3efe7;
       --wr-paper: #fefcf8;
       --wr-ink: #1f2933;
-      --wr-muted: #6a7480;
+      --wr-muted: #5b6470;
       --wr-line: #d8cfbe;
       --wr-accent: #6f4e37;
       --wr-accent-strong: #533729;
       --wr-highlight: #ede2cf;
+      /* Shape scale: sheet 14px, controls 10px, keycaps and flags 6px. */
+      --serif: "Palatino Linotype", "Book Antiqua", Palatino, "P052", "TeX Gyre Pagella", serif;
+      --sans: "Trebuchet MS", "Gill Sans", sans-serif;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 56px 24px 72px;
-      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      padding: 48px 24px 56px;
+      font-family: var(--serif);
       color: var(--wr-ink);
       background:
         radial-gradient(circle at 10% 0%, #ffffff 0%, transparent 42%),
@@ -30,217 +34,370 @@
       min-height: 100vh;
     }
 
-    main {
-      max-width: 720px;
+    /* Intro on the left, the quick-start sheet on the right, footer underneath. */
+    .page {
+      max-width: 1040px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+      gap: 40px 72px;
+      align-items: start;
     }
 
-    header {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 8px;
+    .intro {
+      position: sticky;
+      top: 48px;
     }
 
-    header img {
-      width: 64px;
-      height: 64px;
+    .logo {
+      display: block;
+      width: 72px;
+      height: 72px;
       border-radius: 16px;
       box-shadow: 0 4px 14px rgb(111 78 55 / 18%);
     }
 
     h1 {
-      font-size: 32px;
+      margin: 24px 0 0;
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: 0.005em;
       color: var(--wr-accent);
-      margin: 0;
-      letter-spacing: 0.01em;
+      text-wrap: balance;
     }
 
     .tagline {
-      font-size: 16px;
+      margin: 14px 0 0;
+      font-size: 17px;
+      line-height: 1.55;
       color: var(--wr-muted);
-      margin: 4px 0 36px;
+      max-width: 32ch;
+    }
+
+    .flags {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 40px));
+      gap: 10px 12px;
+      margin-top: 28px;
+    }
+
+    .flags img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 40 / 27;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgb(31 41 51 / 18%);
     }
 
     h2 {
-      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
-      font-size: 14px;
-      margin: 34px 0 14px;
-      color: var(--wr-accent-strong);
-      letter-spacing: 0.08em;
+      margin: 0 0 14px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
+      color: var(--wr-accent-strong);
     }
 
-    .card {
+    .sheet {
       background: var(--wr-paper);
       border: 1px solid var(--wr-line);
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 18px;
-      box-shadow: 0 1px 3px rgb(111 78 55 / 6%);
+      border-radius: 14px;
+      box-shadow:
+        0 1px 2px rgb(111 78 55 / 8%),
+        0 18px 36px -20px rgb(111 78 55 / 28%);
     }
 
-    .card h3 {
-      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
-      font-size: 17px;
+    .sheet section {
+      padding: 26px 32px;
+    }
+
+    .sheet section + section {
+      border-top: 1px solid var(--wr-line);
+    }
+
+    h3 {
       margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.3;
       color: var(--wr-accent-strong);
     }
 
-    .card p {
+    p {
       margin: 0;
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.6;
-      color: var(--wr-ink);
     }
 
-    .card p + p { margin-top: 8px; }
+    .ways {
+      list-style: none;
+      margin: 14px 0 0;
+      padding: 0;
+    }
+
+    .way {
+      display: grid;
+      grid-template-columns: minmax(0, 11.5rem) minmax(0, 1fr);
+      gap: 0 20px;
+      align-items: baseline;
+      padding: 12px 0;
+    }
+
+    .way + .way {
+      border-top: 1px solid var(--wr-line);
+    }
+
+    .way:last-child {
+      padding-bottom: 0;
+    }
+
+    /* Alt + Q sits directly under Alt + X as a continuation of that row. */
+    .way.way-alt {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .way-alt .desc {
+      color: var(--wr-muted);
+    }
+
+    .keys {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 4px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--wr-muted);
+    }
+
+    /* Toolbar icon and Alt + Z stack when the keys column is narrow. */
+    .keys.keys-stack {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    kbd,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      padding: 3px 9px;
+      border: 1px solid var(--wr-line);
+      border-radius: 6px;
+      color: var(--wr-accent-strong);
+    }
 
     kbd {
-      display: inline-block;
-      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border: 1px solid var(--wr-line);
       border-bottom-width: 2px;
-      border-radius: 6px;
       background: var(--wr-highlight);
-      color: var(--wr-accent-strong);
       letter-spacing: 0.03em;
     }
 
-    .shortcut-grid {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 12px 18px;
-      align-items: center;
-      margin-top: 6px;
+    .chip {
+      background: var(--wr-paper);
     }
 
-    .shortcut-grid > .keys {
-      white-space: nowrap;
+    .chip img {
+      width: 16px;
+      height: 16px;
     }
 
-    .shortcut-grid > .desc {
-      font-size: 15px;
-      color: var(--wr-ink);
+    .desc {
+      font-size: 16px;
       line-height: 1.5;
-    }
-
-    .cta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 32px;
     }
 
     .btn {
       display: inline-block;
-      font-family: "Trebuchet MS", "Gill Sans", sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      margin-top: 18px;
       padding: 11px 22px;
-      border: 0;
-      border-radius: 10px;
-      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       text-decoration: none;
+      color: #fff8ef;
+      background: linear-gradient(135deg, var(--wr-accent), #7f624a);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgb(111 78 55 / 24%);
       transition: transform 0.1s ease, box-shadow 0.15s ease;
     }
 
-    .btn-primary {
-      color: #fff8ef;
-      background: linear-gradient(135deg, var(--wr-accent), #7f624a);
-      box-shadow: 0 2px 6px rgb(111 78 55 / 24%);
-    }
-
-    .btn-primary:hover {
+    .btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgb(111 78 55 / 32%);
     }
 
-    .btn-secondary {
-      color: var(--wr-accent-strong);
-      background: transparent;
-      border: 1px solid var(--wr-line);
+    .btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 1px 3px rgb(111 78 55 / 24%);
     }
 
-    .btn-secondary:hover {
-      background: var(--wr-paper);
+    a:focus-visible {
+      outline: 2px solid var(--wr-accent);
+      outline-offset: 3px;
     }
 
     footer {
-      margin-top: 48px;
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 32px;
       padding-top: 20px;
       border-top: 1px solid var(--wr-line);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.5;
       color: var(--wr-muted);
-      text-align: center;
+    }
+
+    footer p {
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    footer nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 24px;
     }
 
     footer a {
       color: var(--wr-accent);
-      text-decoration: none;
+      text-underline-offset: 3px;
     }
 
-    footer a:hover { text-decoration: underline; }
+    footer a:hover { color: var(--wr-accent-strong); }
+
+    @media (max-width: 1000px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 640px;
+        gap: 32px;
+      }
+
+      .intro { position: static; }
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 32px 16px 40px; }
+
+      h1 { font-size: 30px; }
+
+      .sheet section { padding: 22px 20px; }
+
+      .way {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        align-items: start;
+      }
+
+      .way.way-alt { padding-top: 0; }
+
+      .keys.keys-stack {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+
+      .btn:hover,
+      .btn:active { transform: none; }
+    }
   </style>
 </head>
 
 <body>
-  <main>
-    <header>
-      <img src="images/icon-128.png" alt="">
-      <div>
-        <h1 data-i18n="welcomeTitle">Welcome to WordReference Dictionary</h1>
-        <p class="tagline" data-i18n="welcomeTagline">Instant English ↔ 18-language lookups, powered by WordReference.com.</p>
+  <div class="page">
+    <header class="intro">
+      <img class="logo" src="images/icon-128.png" alt="">
+      <h1 data-i18n="welcomeTitle">Welcome to WordReference Dictionary</h1>
+      <p class="tagline" data-i18n="welcomeTagline">Instant English ↔ 18-language lookups, powered by WordReference.com.</p>
+      <div class="flags" aria-hidden="true">
+        <img src="images/flag-tr.png" alt="">
+        <img src="images/flag-es.png" alt="">
+        <img src="images/flag-it.png" alt="">
+        <img src="images/flag-pt.png" alt="">
+        <img src="images/flag-fr.png" alt="">
+        <img src="images/flag-de.png" alt="">
+        <img src="images/flag-nl.png" alt="">
+        <img src="images/flag-sv.png" alt="">
+        <img src="images/flag-ar.png" alt="">
+        <img src="images/flag-zh.png" alt="">
+        <img src="images/flag-ru.png" alt="">
+        <img src="images/flag-gr.png" alt="">
+        <img src="images/flag-pl.png" alt="">
+        <img src="images/flag-ro.png" alt="">
+        <img src="images/flag-cz.png" alt="">
+        <img src="images/flag-ja.png" alt="">
+        <img src="images/flag-ko.png" alt="">
+        <img src="images/flag-is.png" alt="">
       </div>
     </header>
 
-    <h2 data-i18n="welcomeSectionQuickStart">Quick start</h2>
+    <main>
+      <h2 data-i18n="welcomeSectionQuickStart">Quick start</h2>
 
-    <div class="card">
-      <h3 data-i18n="welcomeStep1Title">1. Choose your language pair</h3>
-      <p data-i18n="welcomeStep1Body">Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page.</p>
-    </div>
+      <div class="sheet">
+        <section aria-labelledby="step-language">
+          <h3 id="step-language" data-i18n="welcomeStep1Title">1. Choose your language pair</h3>
+          <p data-i18n="welcomeStep1Body">Pick the language you want English translated to — Spanish, French, German, Turkish, and 14 others — on the settings page.</p>
+          <a class="btn" href="info.html" data-i18n="welcomeOpenSettings">Open Settings</a>
+        </section>
 
-    <div class="card">
-      <h3 data-i18n="welcomeStep2Title">2. Look up any word, anywhere</h3>
-      <p data-i18n="welcomeStep2Intro">Four ways to reach a translation, whichever fits your flow:</p>
-      <div class="shortcut-grid">
-        <span class="keys"><kbd>Alt</kbd> + <kbd>Z</kbd></span>
-        <span class="desc" data-i18n="welcomeShortcutAltZ">Open the dictionary popup. Type or paste any word.</span>
+        <section aria-labelledby="step-lookup">
+          <h3 id="step-lookup" data-i18n="welcomeStep2Title">2. Look up any word, anywhere</h3>
+          <p data-i18n="welcomeStep2Intro">Four ways to reach a translation, whichever fits your flow:</p>
+          <ul class="ways">
+            <li class="way">
+              <span class="keys keys-stack">
+                <span class="chip"><img src="images/icon-16.png" alt=""><span data-i18n="welcomeKeyToolbarIcon">Toolbar icon</span></span>
+                <span><kbd>Alt</kbd> + <kbd>Z</kbd></span>
+              </span>
+              <span class="desc" data-i18n="welcomeShortcutAltZ">Open the dictionary popup. Type or paste any word.</span>
+            </li>
+            <li class="way">
+              <span class="keys"><kbd>Alt</kbd> + <kbd>X</kbd></span>
+              <span class="desc" data-i18n="welcomeShortcutAltX">Select text on any web page, then press to show an in-page translation bubble.</span>
+            </li>
+            <li class="way way-alt">
+              <span class="keys"><kbd>Alt</kbd> + <kbd>Q</kbd></span>
+              <span class="desc" data-i18n="welcomeShortcutAltQ">Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken.</span>
+            </li>
+            <li class="way">
+              <span class="keys"><kbd>Alt</kbd> + <span class="chip" data-i18n="welcomeKeyDoubleClick">double-click</span></span>
+              <span class="desc" data-i18n="welcomeShortcutAltDblClick">Hold Alt and double-click a word to translate it right where it sits.</span>
+            </li>
+            <li class="way">
+              <span class="keys"><span class="chip" data-i18n="welcomeKeyRightClick">Right-click</span></span>
+              <span class="desc" data-i18n="welcomeShortcutRightClick">Select a word, right-click, then choose <em>WordReference: '…'</em> to open the full result in a new tab.</span>
+            </li>
+          </ul>
+        </section>
 
-        <span class="keys"><kbd>Alt</kbd> + <kbd>X</kbd></span>
-        <span class="desc" data-i18n="welcomeShortcutAltX">Select text on any web page, then press to show an in-page translation bubble.</span>
-
-        <span class="keys"><kbd>Alt</kbd> + <kbd>Q</kbd></span>
-        <span class="desc" data-i18n="welcomeShortcutAltQ">Same as Alt + X — an alternate binding for keyboard layouts where Alt + X is taken.</span>
-
-        <span class="keys"><kbd>Alt</kbd> + double-click</span>
-        <span class="desc" data-i18n="welcomeShortcutAltDblClick">Hold Alt and double-click a word to translate it right where it sits.</span>
-
-        <span class="keys">Right-click</span>
-        <span class="desc" data-i18n="welcomeShortcutRightClick">Select a word, right-click, then choose <em>WordReference: '…'</em> to open the full result in a new tab.</span>
+        <section aria-labelledby="step-favorites">
+          <h3 id="step-favorites" data-i18n="welcomeStep3Title">3. Save what you learn</h3>
+          <p data-i18n="welcomeStep3Body">Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review.</p>
+        </section>
       </div>
-    </div>
-
-    <div class="card">
-      <h3 data-i18n="welcomeStep3Title">3. Save what you learn</h3>
-      <p data-i18n="welcomeStep3Body">Star any word from the popup or in-page bubble to add it to your favorites. Manage and export the list to Excel from the settings page — perfect for vocabulary review.</p>
-    </div>
-
-    <div class="cta-row">
-      <a class="btn btn-primary" href="info.html" data-i18n="welcomeOpenSettings">Open Settings</a>
-      <a class="btn btn-secondary" href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer" data-i18n="welcomeVisitWR">Visit WordReference.com</a>
-    </div>
+    </main>
 
     <footer>
-      <p><span data-i18n="welcomeDisclaimer">Not affiliated with or endorsed by WordReference.com.</span>
-        &middot; <a href="https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd" target="_blank" rel="noopener noreferrer">Chrome Web Store</a></p>
+      <p data-i18n="welcomeDisclaimer">Not affiliated with or endorsed by WordReference.com.</p>
+      <nav>
+        <a href="https://www.wordreference.com" target="_blank" rel="noopener noreferrer" data-i18n="welcomeVisitWR">Visit WordReference.com</a>
+        <a href="https://chromewebstore.google.com/detail/wordreference-dictionary/iejcondpdpcmgfiejidjbhcgloepemmd" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+      </nav>
     </footer>
-  </main>
+  </div>
   <script src="scripts/i18n.js"></script>
 </body>
 
