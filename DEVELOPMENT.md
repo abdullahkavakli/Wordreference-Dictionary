@@ -59,7 +59,7 @@ reload (not just refresh the popup).
 | Right-click lookup in Chrome's own PDF viewer | `scripts/background.js` (`lookupTermFromMenu`) + `scripts/content.js` (`WR_LOOKUP_TERM`) |
 | PDF viewer toggle behavior | `scripts/options.js` (UI) + `scripts/background.js` (`syncPdfViewerRule`) |
 | Permissions, CSP, content-script matches, commands | `manifest.json` |
-| Localized strings | `_locales/<lang>/messages.json` (en is master at 51 keys) |
+| Localized strings | `_locales/<lang>/messages.json` (en is master at 55 keys) |
 | Color palette / popup styling | `styles/main.css` (CSS variables at the top); other copies listed under [CSS](#css) |
 | Loading spinner | `styles/loading.css` |
 | Third-party attribution | `THIRD_PARTY_NOTICES.md` |
