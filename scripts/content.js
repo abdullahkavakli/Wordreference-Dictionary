@@ -166,13 +166,15 @@
         margin-left: 6px;
       }
       #${POPUP_ID} .wr-def-row {
-        display: block;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: baseline;
         padding: 5px 0;
         border-top: 1px solid #e7dece;
       }
       #${POPUP_ID} .wr-def-row:first-of-type { border-top: none; }
       #${POPUP_ID} .wr-def-index { color: #5b6470; font-size: 13px; margin-right: 4px; }
-      #${POPUP_ID} .wr-def-example { display: block; margin-top: 2px; }
+      #${POPUP_ID} .wr-def-example { display: block; grid-column: 2; margin-top: 2px; }
       #${POPUP_ID} .wr-fav-btn:focus-visible,
       #${POPUP_ID} .wr-hd a:focus-visible,
       #${POPUP_ID} .wr-more:focus-visible {
