@@ -11,6 +11,8 @@
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
   const FALLBACK_AFTER_MS = 1100;
+  // Widest the bubble gets: max-width 440 + padding + border (content-box pages)
+  const POPUP_MAX_OUTER_WIDTH = 466;
   // WR language codes → BCP 47 for lang=""; codes not listed are already valid.
   const LANG_TAGS = { gr: 'el', cz: 'cs' };
 
@@ -199,7 +201,9 @@
     const popup = document.createElement('div');
     popup.id = POPUP_ID;
     popup.lang = 'en'; // the host page's lang would otherwise apply
-    popup.style.left = `${Math.max(8, pos.x)}px`;
+    // Near the right edge, shift left so the bubble keeps its width and stays on screen
+    const maxLeft = window.scrollX + document.documentElement.clientWidth - POPUP_MAX_OUTER_WIDTH - 8;
+    popup.style.left = `${Math.max(8, Math.min(pos.x, maxLeft))}px`;
     popup.style.top = `${Math.max(8, pos.y)}px`;
     popup.innerHTML = `<div class="wr-load">Searching…</div>`;
     document.body.appendChild(popup);
