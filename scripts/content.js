@@ -10,8 +10,7 @@
   const STYLE_ID = 'wr-selection-style';
   const MAX_ROWS = 6;
   const WR_BASE = 'https://www.wordreference.com';
-  const FETCH_BACKOFF_MS = 300;
-  const HEDGE_OFFSETS_MS = [0, 1100, 1700];
+  const FALLBACK_AFTER_MS = 1100;
   // WR language codes → BCP 47 for lang=""; codes not listed are already valid.
   const LANG_TAGS = { gr: 'el', cz: 'cs' };
 
@@ -407,10 +406,6 @@
       .replace(/"/g, '&quot;');
   }
 
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   function isTransientFetchError(err) {
     if (!err) return false;
     if (err.name === 'AbortError') return true;
@@ -428,12 +423,8 @@
   // The actual network fetch runs in the background service worker: page context
   // can't carry WR's cross-site anti-bot cookie, the extension context can.
   // Background streams, caps the payload, and (re)seeds the cookie on a 418.
-  function fetchWROnce(url, _isDefPage, externalSignal) {
+  function fetchWROnce(url) {
     return new Promise((resolve, reject) => {
-      if (externalSignal && externalSignal.aborted) {
-        reject(new DOMException('canceled by winner', 'AbortError'));
-        return;
-      }
       try {
         chrome.runtime.sendMessage({ type: 'wr-fetch', url }, res => {
           if (chrome.runtime.lastError) {
@@ -452,38 +443,30 @@
     });
   }
 
-  // Hedged race: fire attempt 1 at t=0, attempt 2 at +1.5s, attempt 3 at +3s
-  // (each with its own 3.4s deadline). First success wins; losers get aborted.
-  // If all three lose, fall back to one final sequential attempt #4.
+  // Two tries: the main one, plus one fallback that starts when the main try
+  // hasn't answered within FALLBACK_AFTER_MS or fails with a retryable error.
+  // First success wins. A 404 (WR has no such word) is final: no fallback.
   async function fetchWRPage(url) {
-    const isDefPage = url.includes('/definition/');
-    const cancel = new AbortController();
-    const raceErrors = [];
-
-    const racing = HEDGE_OFFSETS_MS.map(async (offset) => {
-      if (offset > 0) await sleep(offset);
-      if (cancel.signal.aborted) throw new DOMException('canceled by winner', 'AbortError');
-      return fetchWROnce(url, isDefPage, cancel.signal);
+    const main = fetchWROnce(url);
+    const fallback = new Promise((resolve, reject) => {
+      let started = false;
+      const start = () => {
+        if (started) return;
+        started = true;
+        fetchWROnce(url).then(resolve, reject);
+      };
+      const timer = setTimeout(start, FALLBACK_AFTER_MS);
+      main.then(() => clearTimeout(timer), err => {
+        clearTimeout(timer);
+        if (isTransientFetchError(err)) start();
+        else if (!started) reject(err);
+      });
     });
 
     try {
-      const html = await Promise.any(racing);
-      cancel.abort();
-      return html;
+      return await Promise.any([main, fallback]);
     } catch (err) {
-      if (err && Array.isArray(err.errors)) {
-        for (const e of err.errors) {
-          if (!(e && e.name === 'AbortError')) raceErrors.push(e);
-        }
-      }
-    }
-
-    await sleep(FETCH_BACKOFF_MS * 3);
-    try {
-      return await fetchWROnce(url, isDefPage, null);
-    } catch (err) {
-      const meaningful = raceErrors.find(e => isTransientFetchError(e) || typeof e.status === 'number');
-      throw meaningful || err;
+      throw err.errors.find(e => typeof e.status === 'number') || err.errors[0];
     }
   }
 
@@ -606,9 +589,12 @@
         const ipaEl = document.getElementById('wr-ipa-inline');
         if (ipa && ipaEl) ipaEl.textContent = ipa;
       });
-    } catch (_) {
+    } catch (err) {
       if (!popupCanRender(popup, token)) return;
-      popup.innerHTML = `<div class="wr-err">Failed to fetch results.</div>`;
+      // WR answers 404 for a word it doesn't have
+      popup.innerHTML = err && err.status === 404
+        ? `<div class="wr-err">No results for "<strong>${escapeHtml(term)}</strong>".</div>`
+        : `<div class="wr-err">Failed to fetch results.</div>`;
     }
   }
 

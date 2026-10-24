@@ -383,6 +383,14 @@ function notFound(str) {
   document.getElementById('loading').style.display = 'none';
 }
 
+function fetchFailed() {
+  document.getElementById('content').innerHTML = `
+    <div class="alert alert-warning" role="alert">
+      <strong>Couldn’t reach WordReference.</strong> Check your connection and try again.
+    </div>`;
+  document.getElementById('loading').style.display = 'none';
+}
+
 function renderResults(sections, str, dir) {
   const content = document.getElementById('content');
   content.innerHTML = '';
@@ -531,9 +539,11 @@ async function searchWR(rawStr) {
     document.getElementById('voice-tts').style.display = 'flex';
     document.getElementById('ipa-inline').textContent = ipa || '';
     refreshPopupFavoriteButton(token);
-  } catch (_) {
+  } catch (err) {
     if (token !== _searchToken) return;
-    notFound(str);
+    // WR answers 404 for a word it doesn't have
+    if (err && err.status === 404) notFound(str);
+    else fetchFailed();
     showFavoriteStatus('');
   }
 }
