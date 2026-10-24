@@ -18,61 +18,50 @@
         <input type="search" class="form-control" id="search-input" placeholder="Search WordReference…"
           data-i18n-placeholder="popupSearchPlaceholder" autocomplete="off" autofocus tabindex="1">
         <button type="button" class="btn btn-primary" id="wr-btn" title="Search WordReference"
-          data-i18n-title="popupSearchLabel">WR</button>
+          data-i18n-title="popupSearchLabel" data-i18n="popupSearchButton">Search</button>
       </div>
     </div>
   </div>
 
-  <!-- TTS / logo bar -->
+  <!-- Headword, pronunciation, favorite, open in WR -->
   <div id="voice-tts" class="container">
-    <img src="images/voice-logo.png" alt="Pronunciation" class="voice-logo">
-    <button type="button" id="flag-tr-btn" class="icon-btn" aria-label="Play Turkish pronunciation"><img id="flag-tr"
-        src="images/flag-tr.png" alt="" class="flag flag-tr"></button>
-    <button type="button" id="flag-es-btn" class="icon-btn" aria-label="Play Spanish pronunciation"><img id="flag-es"
-        src="images/flag-es.png" alt="" class="flag flag-es"></button>
-    <button type="button" id="flag-it-btn" class="icon-btn" aria-label="Play Italian pronunciation"><img id="flag-it"
-        src="images/flag-it.png" alt="" class="flag flag-it"></button>
-    <button type="button" id="flag-pt-btn" class="icon-btn" aria-label="Play Portuguese pronunciation"><img id="flag-pt"
-        src="images/flag-pt.png" alt="" class="flag flag-pt"></button>
-    <button type="button" id="flag-fr-btn" class="icon-btn" aria-label="Play French pronunciation"><img id="flag-fr"
-        src="images/flag-fr.png" alt="" class="flag flag-fr"></button>
-    <button type="button" id="flag-de-btn" class="icon-btn" aria-label="Play German pronunciation"><img id="flag-de"
-        src="images/flag-de.png" alt="" class="flag flag-de"></button>
-    <button type="button" id="flag-nl-btn" class="icon-btn" aria-label="Play Dutch pronunciation"><img id="flag-nl"
-        src="images/flag-nl.png" alt="" class="flag flag-nl"></button>
-    <button type="button" id="flag-sv-btn" class="icon-btn" aria-label="Play Swedish pronunciation"><img id="flag-sv"
-        src="images/flag-sv.png" alt="" class="flag flag-sv"></button>
-    <button type="button" id="flag-ar-btn" class="icon-btn" aria-label="Play Arabic pronunciation"><img id="flag-ar"
-        src="images/flag-ar.png" alt="" class="flag flag-ar"></button>
-    <button type="button" id="flag-zh-btn" class="icon-btn" aria-label="Play Chinese pronunciation"><img id="flag-zh"
-        src="images/flag-zh.png" alt="" class="flag flag-zh"></button>
-    <button type="button" id="flag-ru-btn" class="icon-btn" aria-label="Play Russian pronunciation"><img id="flag-ru"
-        src="images/flag-ru.png" alt="" class="flag flag-ru"></button>
-    <button type="button" id="flag-gr-btn" class="icon-btn" aria-label="Play Greek pronunciation"><img id="flag-gr"
-        src="images/flag-gr.png" alt="" class="flag flag-gr"></button>
-    <button type="button" id="flag-pl-btn" class="icon-btn" aria-label="Play Polish pronunciation"><img id="flag-pl"
-        src="images/flag-pl.png" alt="" class="flag flag-pl"></button>
-    <button type="button" id="flag-ro-btn" class="icon-btn" aria-label="Play Romanian pronunciation"><img id="flag-ro"
-        src="images/flag-ro.png" alt="" class="flag flag-ro"></button>
-    <button type="button" id="flag-cz-btn" class="icon-btn" aria-label="Play Czech pronunciation"><img id="flag-cz"
-        src="images/flag-cz.png" alt="" class="flag flag-cz"></button>
-    <button type="button" id="flag-ja-btn" class="icon-btn" aria-label="Play Japanese pronunciation"><img id="flag-ja"
-        src="images/flag-ja.png" alt="" class="flag flag-ja"></button>
-    <button type="button" id="flag-ko-btn" class="icon-btn" aria-label="Play Korean pronunciation"><img id="flag-ko"
-        src="images/flag-ko.png" alt="" class="flag flag-ko"></button>
-    <button type="button" id="flag-is-btn" class="icon-btn" aria-label="Play Icelandic pronunciation"><img id="flag-is"
-        src="images/flag-is.png" alt="" class="flag flag-is"></button>
-    <button type="button" id="flag-us-btn" class="icon-btn" aria-label="Play American English pronunciation"><img
-        id="flag-us" src="images/flag-us.png" alt="" class="flag flag-us"></button>
-    <button type="button" id="flag-uk-btn" class="icon-btn" aria-label="Play British English pronunciation"><img
-        id="flag-uk" src="images/flag-uk.png" alt="" class="flag flag-uk"></button>
-    <span id="ipa-inline" class="wr-ipa-inline" aria-live="polite"></span>
+    <div class="headword-row">
+      <h1 id="headword" class="headword" lang="en"></h1>
+      <span id="ipa-inline" class="wr-ipa-inline" aria-live="polite"></span>
+    </div>
+    <div class="pron" role="group" aria-label="Pronunciation">
+      <span class="pron-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path
+            d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg></span>
+      <button type="button" id="flag-tr-btn" class="pron-btn" aria-label="Play Turkish pronunciation">TR</button>
+      <button type="button" id="flag-es-btn" class="pron-btn" aria-label="Play Spanish pronunciation">ES</button>
+      <button type="button" id="flag-it-btn" class="pron-btn" aria-label="Play Italian pronunciation">IT</button>
+      <button type="button" id="flag-pt-btn" class="pron-btn" aria-label="Play Portuguese pronunciation">PT</button>
+      <button type="button" id="flag-fr-btn" class="pron-btn" aria-label="Play French pronunciation">FR</button>
+      <button type="button" id="flag-de-btn" class="pron-btn" aria-label="Play German pronunciation">DE</button>
+      <button type="button" id="flag-nl-btn" class="pron-btn" aria-label="Play Dutch pronunciation">NL</button>
+      <button type="button" id="flag-sv-btn" class="pron-btn" aria-label="Play Swedish pronunciation">SV</button>
+      <button type="button" id="flag-ar-btn" class="pron-btn" aria-label="Play Arabic pronunciation">AR</button>
+      <button type="button" id="flag-zh-btn" class="pron-btn" aria-label="Play Chinese pronunciation">ZH</button>
+      <button type="button" id="flag-ru-btn" class="pron-btn" aria-label="Play Russian pronunciation">RU</button>
+      <button type="button" id="flag-gr-btn" class="pron-btn" aria-label="Play Greek pronunciation">GR</button>
+      <button type="button" id="flag-pl-btn" class="pron-btn" aria-label="Play Polish pronunciation">PL</button>
+      <button type="button" id="flag-ro-btn" class="pron-btn" aria-label="Play Romanian pronunciation">RO</button>
+      <button type="button" id="flag-cz-btn" class="pron-btn" aria-label="Play Czech pronunciation">CZ</button>
+      <button type="button" id="flag-ja-btn" class="pron-btn" aria-label="Play Japanese pronunciation">JA</button>
+      <button type="button" id="flag-ko-btn" class="pron-btn" aria-label="Play Korean pronunciation">KO</button>
+      <button type="button" id="flag-is-btn" class="pron-btn" aria-label="Play Icelandic pronunciation">IS</button>
+      <button type="button" id="flag-us-btn" class="pron-btn" aria-label="Play American English pronunciation">US</button>
+      <button type="button" id="flag-uk-btn" class="pron-btn" aria-label="Play British English pronunciation">UK</button>
+    </div>
     <span id="favorite-status" class="favorite-status" aria-live="polite"></span>
     <button type="button" id="favorite-btn" class="icon-btn favorite-btn" aria-label="Add to favorites"
       title="Add to favorites" data-i18n-aria-label="popupAddFavorite" data-i18n-title="popupAddFavorite">☆</button>
     <button type="button" id="wr-logo-btn" class="icon-btn wr-logo-btn" aria-label="Open in WordReference"
-        title="Open in WordReference" data-i18n-aria-label="popupOpenInWR" data-i18n-title="popupOpenInWR"><img
-        id="wr-logo" src="images/icon-128.png" alt="" class="wr-logo-img"></button>
+      title="Open in WordReference" data-i18n-aria-label="popupOpenInWR" data-i18n-title="popupOpenInWR"><svg
+        aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"><path
+          d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
   </div>
 
   <!-- Results -->

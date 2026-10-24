@@ -14,6 +14,8 @@
   --wr-primary-pressed: #47423e;
   --wr-field: #8c867f;
   --wr-focus: #227e9e;
+  --wr-navy: #2b4c81;
+  --wr-control-line: #ddd9d4;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -86,8 +88,13 @@ table.table {
 
 table.table th,
 table.table td {
-  padding: 10px 16px;
+  padding: 12px 16px;
   vertical-align: top;
+}
+
+table.table th:first-child:not([colspan]),
+table.table td:first-child {
+  width: 42.5%;
 }
 
 table.table th,
@@ -108,7 +115,7 @@ body {
 }
 
 #form_div {
-  padding: 12px 16px;
+  padding: 16px 16px 12px;
 }
 
 .input-row {
@@ -120,13 +127,23 @@ body {
 #search-input {
   flex: 1;
   box-sizing: border-box;
-  border: 1px solid var(--wr-field);
-  border-radius: 6px;
+  height: 44px;
+  border: 1.5px solid var(--wr-focus);
+  border-radius: 10px;
   font-size: 15px;
-  background-color: var(--wr-paper);
+  background: var(--wr-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b655f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center / 18px 18px;
   color: var(--wr-ink);
-  padding: 12px 18px;
+  padding: 0 8px 0 38px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0 4px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232b4c81' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 16px no-repeat;
+  cursor: pointer;
 }
 
 #search-input::placeholder {
@@ -139,17 +156,17 @@ body {
 }
 
 #wr-btn {
-  align-self: stretch;
+  height: 44px;
   background: var(--wr-primary);
   border: 0;
-  border-radius: 4px;
+  border-radius: 10px;
   color: #fff;
   font-family: "Trebuchet MS", "Gill Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   white-space: nowrap;
   min-width: 54px;
-  padding: 10px 16px;
+  padding: 0 18px;
 }
 
 #wr-btn:hover,
@@ -158,19 +175,76 @@ body {
 }
 
 #voice-tts {
-  padding: 0 64px 12px 16px;
+  padding: 0 16px 12px;
   display: none;
   position: relative;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
-.voice-logo {
-  width: 40px;
-  height: 30px;
-  object-fit: contain;
-  border-radius: 4px;
-  padding: 2px;
+/* Headword row: the looked-up word with its IPA beside it */
+.headword-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.headword {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--wr-ink);
+  white-space: nowrap;
+}
+
+/* Pronunciation: one segmented control, a button per sound source */
+.pron {
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 36px;
+  border: 1px solid var(--wr-control-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pron-icon {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 8px;
+  border-right: 1px solid var(--wr-control-line);
+  background: var(--wr-highlight);
+  color: var(--wr-muted);
+}
+
+.pron-btn {
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-right: 1px solid var(--wr-control-line);
+  background: var(--wr-paper);
+  color: var(--wr-ink);
+  font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pron-btn:last-child {
+  border-right: 0;
+}
+
+.pron-btn:hover {
+  background: var(--wr-highlight);
+}
+
+.pron-btn:focus-visible {
+  outline: 2px solid var(--wr-focus);
+  outline-offset: -2px;
 }
 
 .icon-btn {
@@ -201,11 +275,11 @@ body {
    Palatino lacks most of them. Cut off with an ellipsis; popup.js shows the
    full text on hover. */
 .wr-ipa-inline {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   font-family: "Charis SIL", "Gentium Plus", Cambria, "Times New Roman", "Noto Serif", "DejaVu Serif", serif;
   font-size: 18px;
-  color: var(--wr-ink);
+  color: var(--wr-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -213,11 +287,17 @@ body {
 
 /* Saved is shown by the filled ★ glyph, not by colour */
 .favorite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
   font-size: 22px;
   line-height: 1;
-  color: var(--wr-primary);
+  color: var(--wr-navy);
   cursor: pointer;
-  margin-right: 2px;
 }
 
 .favorite-btn:disabled {
@@ -239,26 +319,16 @@ body {
   display: none;
 }
 
-.flag {
-  height: 28px;
-  width: 42px;
-  border-radius: 4px;
-  outline: 1px solid var(--wr-line);
-  outline-offset: -1px;
-  cursor: pointer;
-}
-
 .wr-logo-btn {
-  position: absolute;
-  right: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  color: var(--wr-ink);
   cursor: pointer;
-}
-
-.wr-logo-img {
-  height: 28px;
-  border-radius: 6px;
-  outline: 1px solid var(--wr-line);
-  outline-offset: -1px;
 }
 
 .search_results {
@@ -293,18 +363,20 @@ table tbody tr:hover {
   background-color: var(--wr-highlight);
 }
 
-/* No lines between words: a new English word gets a little air, and its
-   extra translations sit tight beneath it */
-table tbody tr:has(> td:first-child:not(:empty)) > td {
-  padding-top: 14px;
+table.table thead th {
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
-table tbody tr:has(> td:first-child:empty) > td {
-  padding-top: 0;
+/* One row per entry, no lines: the part of speech sits under the English
+   word, and the translations stack in the second cell */
+.wr-from-pos {
+  display: block;
+  margin-top: 2px;
 }
 
-table tbody tr:last-child > td {
-  padding-bottom: 14px;
+.wr-tr + .wr-tr {
+  margin-top: 6px;
 }
 
 /* Result words are buttons (they run a new search) dressed as text */
@@ -352,7 +424,7 @@ td:lang(ar) {
   color: var(--wr-muted);
   font-style: italic;
   background: var(--wr-highlight);
-  padding: 10px 16px;
+  padding: 9px 16px;
 }
 
 .wr-def-list {
@@ -375,10 +447,10 @@ td:lang(ar) {
 .popup-footer {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   font-size: 8pt;
   color: var(--wr-muted);
-  padding: 12px 16px;
+  padding: 12px 16px 14px;
 }
 
 .popup-footer-source {

@@ -44,6 +44,10 @@
     "message": "Results from WordReference.com",
     "description": "Popup footer, after the copyright: credits WordReference as the source of the results"
   },
+  "popupSearchButton": {
+    "message": "Search",
+    "description": "Popup search button label"
+  },
   "popupFlagPronunciation": {
     "message": "Play $LANG$ pronunciation",
     "description": "Aria-label template for each flag-shaped pronunciation button",

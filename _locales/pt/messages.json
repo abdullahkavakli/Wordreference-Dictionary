@@ -11,6 +11,7 @@
   "popupAddFavorite": { "message": "Adicionar aos favoritos" },
   "popupOpenInWR": { "message": "Abrir no WordReference" },
   "popupFooterSource": { "message": "Resultados do WordReference.com" },
+  "popupSearchButton": { "message": "Pesquisar" },
 
   "welcomeTitle": { "message": "Bem-vindo ao WordReference Dicionário" },
   "welcomeTagline": { "message": "Pesquisas instantâneas inglês ↔ 18 idiomas, com tecnologia WordReference.com." },

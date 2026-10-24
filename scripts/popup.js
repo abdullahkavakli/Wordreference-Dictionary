@@ -364,6 +364,7 @@ function sanitize(str) {
   document.getElementById('search-input').value = str;
   document.getElementById('loading').style.display = 'block';
   document.getElementById('voice-tts').style.display = 'none';
+  document.getElementById('headword').textContent = '';
   document.getElementById('ipa-inline').textContent = '';
   showFavoriteStatus('');
   _lastFavoriteCandidate = null;
@@ -427,27 +428,24 @@ function renderResults(sections, str, dir) {
 
     const tbody = tableEl.querySelector('tbody');
 
+    // One row per entry: the English word with its part of speech beneath it,
+    // and all of its translations stacked in the second cell
     sec.entries.forEach(e => {
-      e.translations.forEach((t, i) => {
-        const tr = document.createElement('tr');
-
-        const fromTd = i === 0
-          ? `<td>
-               <button type="button" class="wr-word-link" data-word="${escapeAttr(e.fromWord)}">${escapeHtml(e.fromWord)}</button>
-               ${e.fromPos ? `<small class="text-muted"> (${escapeHtml(e.fromPos)})</small>` : ''}
-             </td>`
-          : `<td></td>`;
-
-        tr.innerHTML = `
-          ${fromTd}
-          <td lang="${escapeAttr(toTag)}">
+      if (!e.translations.length) return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <button type="button" class="wr-word-link" data-word="${escapeAttr(e.fromWord)}">${escapeHtml(e.fromWord)}</button>
+          ${e.fromPos ? `<small class="text-muted wr-from-pos">${escapeHtml(e.fromPos)}</small>` : ''}
+        </td>
+        <td lang="${escapeAttr(toTag)}">
+          ${e.translations.map(t => `<div class="wr-tr">
             <button type="button" class="wr-word-link" dir="auto" data-word="${escapeAttr(t.word)}">${escapeHtml(t.word)}</button>
             ${t.pos ? `<small class="text-muted"> (${escapeHtml(t.pos)})</small>` : ''}
             ${t.gloss ? `<small class="text-info">  ${escapeHtml(t.gloss)}</small>` : ''}
-          </td>`;
-
-        tbody.appendChild(tr);
-      });
+          </div>`).join('')}
+        </td>`;
+      tbody.appendChild(tr);
     });
 
     content.appendChild(tableEl);
@@ -537,6 +535,7 @@ async function searchWR(rawStr) {
     _lastFavoriteCandidate = buildPopupFavoriteCandidate(str, dir, isMonolingual, sections, defSections, ipa);
     _wrAudioFiles = extractWRAudioFiles(doc);
     document.getElementById('voice-tts').style.display = 'flex';
+    document.getElementById('headword').textContent = str;
     document.getElementById('ipa-inline').textContent = ipa || '';
     refreshPopupFavoriteButton(token);
   } catch (err) {
