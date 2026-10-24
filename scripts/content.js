@@ -12,6 +12,8 @@
   const WR_BASE = 'https://www.wordreference.com';
   const FETCH_BACKOFF_MS = 300;
   const HEDGE_OFFSETS_MS = [0, 1100, 1700];
+  // WR language codes → BCP 47 for lang=""; codes not listed are already valid.
+  const LANG_TAGS = { gr: 'el', cz: 'cs' };
 
   const favoritesApi = window.WRFavorites || null;
 
@@ -70,10 +72,10 @@
         box-shadow: 0 10px 30px rgba(31, 41, 51, .18);
         padding: 10px 12px;
         min-width: 260px;
-        max-width: 380px;
-        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-        font-size: 13px;
-        line-height: 1.4;
+        max-width: 440px;
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, "P052", "TeX Gyre Pagella", serif;
+        font-size: 16px;
+        line-height: 1.45;
       }
       #${POPUP_ID} .wr-hd {
         font-weight: 700;
@@ -85,7 +87,7 @@
         gap: 10px;
       }
       #${POPUP_ID} .wr-hd a {
-        font-size: 11px;
+        font-size: 13px;
         color: #6f4e37;
         text-decoration: none;
         font-weight: 600;
@@ -97,6 +99,7 @@
       #${POPUP_ID} .wr-hd > span:first-child {
         min-width: 0;
         overflow-wrap: anywhere;
+        font-size: 19px;
       }
       #${POPUP_ID} .wr-actions {
         display: flex;
@@ -134,7 +137,7 @@
         border-color: #b87000;
       }
       #${POPUP_ID} .wr-fav-status {
-        font-size: 11px;
+        font-size: 13px;
         color: #2e7d32;
         margin-bottom: 4px;
       }
@@ -146,20 +149,28 @@
         border-top: 1px solid #e7dece;
       }
       #${POPUP_ID} .wr-row:first-of-type { border-top: none; }
-      #${POPUP_ID} .wr-from { font-weight: 600; }
-      #${POPUP_ID} .wr-pos  { font-size: 11px; color: #6a7480; }
+      #${POPUP_ID} .wr-row.wr-cont { border-top: none; padding-top: 0; }
+      #${POPUP_ID} .wr-from { color: #5b6470; }
+      #${POPUP_ID} .wr-pos  { font-size: 13px; color: #5b6470; }
+      #${POPUP_ID} [lang="ar"] { font-size: 1.15em; }
       #${POPUP_ID} .wr-err  { color: #b00020; }
-      #${POPUP_ID} .wr-load { color: #6a7480; }
-      #${POPUP_ID} .wr-more { display:block; margin-top:6px; font-size:11px; color:#6f4e37; text-decoration:none; font-weight:600; }
+      #${POPUP_ID} .wr-load { color: #5b6470; }
+      #${POPUP_ID} .wr-more { display:block; margin-top:6px; font-size:13px; color:#6f4e37; text-decoration:none; font-weight:600; }
       #${POPUP_ID} .wr-more:hover { color:#533729; text-decoration:underline; }
-      #${POPUP_ID} .wr-ipa { font-size: 12px; color: #6a7480; font-style: italic; font-weight: 400; margin-left: 4px; }
+      #${POPUP_ID} .wr-ipa {
+        font-family: "Charis SIL", "Gentium Plus", Cambria, "Times New Roman", "Noto Serif", "DejaVu Serif", serif;
+        font-size: 16px;
+        color: #1f2933;
+        font-weight: 400;
+        margin-left: 6px;
+      }
       #${POPUP_ID} .wr-def-row {
         display: block;
         padding: 5px 0;
         border-top: 1px solid #e7dece;
       }
       #${POPUP_ID} .wr-def-row:first-of-type { border-top: none; }
-      #${POPUP_ID} .wr-def-index { color: #6a7480; font-size: 11px; margin-right: 4px; }
+      #${POPUP_ID} .wr-def-index { color: #5b6470; font-size: 13px; margin-right: 4px; }
       #${POPUP_ID} .wr-def-example { display: block; margin-top: 2px; }
       #${POPUP_ID} .wr-fav-btn:focus-visible,
       #${POPUP_ID} .wr-hd a:focus-visible,
@@ -188,6 +199,7 @@
     ensureStyles();
     const popup = document.createElement('div');
     popup.id = POPUP_ID;
+    popup.lang = 'en'; // the host page's lang would otherwise apply
     popup.style.left = `${Math.max(8, pos.x)}px`;
     popup.style.top = `${Math.max(8, pos.y)}px`;
     popup.innerHTML = `<div class="wr-load">Searching…</div>`;
@@ -553,6 +565,10 @@
 
         const displayRows = rows.slice(0, MAX_ROWS);
         const hasMore = rows.length > MAX_ROWS;
+        const toTag = LANG_TAGS[settings.langPair] || settings.langPair;
+        // Consecutive rows with the same source word show it once
+        const isCont = (e, i) => i > 0
+          && e.fromWord === displayRows[i - 1].fromWord && e.fromPos === displayRows[i - 1].fromPos;
 
         // Render translations immediately, leave IPA placeholder empty
         if (!popupCanRender(popup, token)) return;
@@ -565,15 +581,15 @@
             </span>
           </div>
           <div class="wr-fav-status" aria-live="polite"></div>
-          ${displayRows.map(e => `
-            <div class="wr-row">
-              <div class="wr-from">
+          ${displayRows.map((e, i) => `
+            <div class="wr-row${isCont(e, i) ? ' wr-cont' : ''}">
+              <div class="wr-from">${isCont(e, i) ? '' : `
                 ${escapeHtml(e.fromWord)}
                 ${e.fromPos ? `<span class="wr-pos"> (${escapeHtml(e.fromPos)})</span>` : ''}
-              </div>
-              <div>
+              `}</div>
+              <div lang="${escapeHtml(toTag)}">
                 ${e.translations.slice(0, 2).map(t =>
-          `${escapeHtml(t.word)}${t.pos ? ` <span class="wr-pos">(${escapeHtml(t.pos)})</span>` : ''}`
+          `<bdi>${escapeHtml(t.word)}</bdi>${t.pos ? ` <span class="wr-pos">(${escapeHtml(t.pos)})</span>` : ''}`
         ).join(', ')}
               </div>
             </div>`).join('')}

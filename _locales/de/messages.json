@@ -10,6 +10,7 @@
   "popupSearchPlaceholder": { "message": "WordReference durchsuchen…" },
   "popupAddFavorite": { "message": "Zu Favoriten hinzufügen" },
   "popupOpenInWR": { "message": "In WordReference öffnen" },
+  "popupFooterSource": { "message": "Ergebnisse von WordReference.com" },
 
   "welcomeTitle": { "message": "Willkommen bei WordReference Wörterbuch" },
   "welcomeTagline": { "message": "Sofortige Englisch ↔ 18-Sprachen-Übersetzungen, betrieben von WordReference.com." },

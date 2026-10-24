@@ -2,7 +2,7 @@
   --wr-bg: #f3efe7;
   --wr-paper: #fefcf8;
   --wr-ink: #1f2933;
-  --wr-muted: #6a7480;
+  --wr-muted: #5b6470;
   --wr-line: #d8cfbe;
   --wr-accent: #6f4e37;
   --wr-accent-strong: #533729;
@@ -80,6 +80,7 @@ table.table td {
   vertical-align: top;
 }
 
+table.table th,
 table.table td {
   text-align: left;
 }
@@ -94,7 +95,7 @@ table.table td {
 
 body {
   min-width: 490px;
-  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "P052", "TeX Gyre Pagella", serif;
   color: var(--wr-ink);
   background:
     radial-gradient(circle at 12% 18%, #ffffff 0%, transparent 40%),
@@ -186,17 +187,21 @@ body {
 .btn:focus-visible,
 .icon-btn:focus-visible,
 .favorite-btn:focus-visible,
-.wr-logo-btn:focus-visible {
+.wr-logo-btn:focus-visible,
+.wr-word-link:focus-visible {
   outline: 2px solid var(--wr-accent);
   outline-offset: 2px;
 }
 
+/* IPA: upright (italic a looks like ɑ), in a face that has every IPA symbol;
+   Palatino lacks most of them. Cut off with an ellipsis; popup.js shows the
+   full text on hover. */
 .wr-ipa-inline {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
-  color: #4f5c69;
-  font-style: italic;
+  font-family: "Charis SIL", "Gentium Plus", Cambria, "Times New Roman", "Noto Serif", "DejaVu Serif", serif;
+  font-size: 18px;
+  color: var(--wr-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -230,10 +235,13 @@ body {
 }
 
 .favorite-status {
-  min-width: 56px;
   font-size: 11px;
   color: var(--wr-positive);
   white-space: nowrap;
+}
+
+.favorite-status:empty {
+  display: none;
 }
 
 .flag {
@@ -274,7 +282,8 @@ body {
 
 table {
   overflow: auto;
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.4;
   margin-bottom: 10px;
   border: 1px solid var(--wr-line);
   border-radius: 8px;
@@ -307,19 +316,38 @@ table tbody tr:hover {
   background-color: #f6ecd9;
 }
 
-table tbody a {
+/* Result words are buttons (they run a new search) dressed as text */
+.wr-word-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
+table tbody .wr-word-link {
   cursor: pointer;
   color: var(--wr-accent);
   font-weight: 600;
 }
 
-table tbody a:hover {
+/* Translations: regular weight in ink, so the answer reads first */
+table tbody td + td .wr-word-link {
+  font-weight: 400;
+  color: var(--wr-ink);
+}
+
+table tbody .wr-word-link:hover {
   color: #7f5539;
   text-decoration: underline;
 }
 
+td:lang(ar) {
+  font-size: 1.15em;
+}
+
 .section-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--wr-muted);
   font-weight: 500;
   font-style: italic;
@@ -334,7 +362,7 @@ table tbody a:hover {
 }
 
 .wr-def-source {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--wr-muted);
   font-style: italic;
   border-bottom: 1px solid var(--wr-line);
@@ -345,7 +373,8 @@ table tbody a:hover {
 .wr-def-list {
   padding-left: 24px;
   margin: 4px 0;
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.45;
 }
 
 .wr-def-list li {
@@ -360,11 +389,16 @@ table tbody a:hover {
 
 .popup-footer {
   text-align: center;
-  font-size: 9px;
-  color: #8a8173;
+  font-size: 11px;
+  color: #5f6873;
   margin-top: 10px;
   border-top: 1px solid var(--wr-line);
   padding-top: 4px;
+}
+
+/* No notice until there is something to credit */
+#content:empty + .popup-footer {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

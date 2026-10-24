@@ -30,6 +30,9 @@
   "popupOpenInWR": {
     "message": "WordReference'da aç"
   },
+  "popupFooterSource": {
+    "message": "Sonuçlar WordReference.com'dan"
+  },
   "popupFlagPronunciation": {
     "message": "$LANG$ telaffuzunu çal",
     "placeholders": {

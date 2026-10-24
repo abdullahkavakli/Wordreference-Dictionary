@@ -63,6 +63,10 @@ for (const [code, name] of Object.entries(LANG_MAP)) {
 }
 LANG_LABELS['definition'] = ['English', 'Definition'];
 
+// WR language codes → BCP 47, for lang="" on translations (font choice, e.g.
+// Japanese vs Chinese glyph shapes). Codes not listed are already valid.
+const LANG_TAGS = { gr: 'el', cz: 'cs' };
+
 // ─── DOM helpers ─────────────────────────────────────────────────────────────
 
 function escapeHtml(str) {
@@ -389,6 +393,8 @@ function renderResults(sections, str, dir) {
   }
 
   const [fromLang, toLang] = (LANG_LABELS[dir] || ['', '']);
+  const toCode = dir.slice(2);
+  const toTag = LANG_TAGS[toCode] || toCode;
 
   sections.forEach(sec => {
     if (!sec.entries.length) return;
@@ -419,15 +425,15 @@ function renderResults(sections, str, dir) {
 
         const fromTd = i === 0
           ? `<td>
-               <a class="wr-word-link" data-word="${escapeAttr(e.fromWord)}">${escapeHtml(e.fromWord)}</a>
+               <button type="button" class="wr-word-link" data-word="${escapeAttr(e.fromWord)}">${escapeHtml(e.fromWord)}</button>
                ${e.fromPos ? `<small class="text-muted"> (${escapeHtml(e.fromPos)})</small>` : ''}
              </td>`
           : `<td></td>`;
 
         tr.innerHTML = `
           ${fromTd}
-          <td>
-            <a class="wr-word-link" data-word="${escapeAttr(t.word)}">${escapeHtml(t.word)}</a>
+          <td lang="${escapeAttr(toTag)}">
+            <button type="button" class="wr-word-link" dir="auto" data-word="${escapeAttr(t.word)}">${escapeHtml(t.word)}</button>
             ${t.pos ? `<small class="text-muted"> (${escapeHtml(t.pos)})</small>` : ''}
             ${t.gloss ? `<small class="text-info">  ${escapeHtml(t.gloss)}</small>` : ''}
           </td>`;
@@ -522,7 +528,7 @@ async function searchWR(rawStr) {
     const ipa = WRParser.extractIPA(doc, popupSettings.ipaDialect);
     _lastFavoriteCandidate = buildPopupFavoriteCandidate(str, dir, isMonolingual, sections, defSections, ipa);
     _wrAudioFiles = extractWRAudioFiles(doc);
-    document.getElementById('voice-tts').style.display = 'block';
+    document.getElementById('voice-tts').style.display = 'flex';
     document.getElementById('ipa-inline').textContent = ipa || '';
     refreshPopupFavoriteButton(token);
   } catch (_) {
@@ -544,11 +550,18 @@ document.getElementById('search-input').addEventListener('keydown', e => {
 
 // ─── WR logo → open in browser ───────────────────────────────────────────────
 
-document.getElementById('wr-logo').addEventListener('click', () => {
+document.getElementById('wr-logo-btn').addEventListener('click', () => {
   const word = document.getElementById('search-input').value.trim();
   if (!word) return;
   const dir = _lastDir || resolveDir(word);
   chrome.tabs.create({ url: `${WR_BASE}/${dir}/${encodeURIComponent(word)}` });
+});
+
+// ─── IPA → full text on hover when it's cut off ──────────────────────────────
+
+const ipaInlineEl = document.getElementById('ipa-inline');
+ipaInlineEl.addEventListener('mouseenter', () => {
+  ipaInlineEl.title = ipaInlineEl.scrollWidth > ipaInlineEl.clientWidth ? ipaInlineEl.textContent : '';
 });
 
 // ─── Non-critical init — deferred to keep first paint fast ───────────────────
@@ -557,7 +570,7 @@ const allFlags = ['tr', 'es', 'it', 'pt', 'fr', 'de', 'nl', 'sv', 'ar', 'zh', 'r
 
 function _wrDeferredInit() {
   allFlags.forEach(lang => {
-    const btn = document.getElementById(`flag-${lang}`);
+    const btn = document.getElementById(`flag-${lang}-btn`);
     if (btn) btn.addEventListener('click', () => playWRAudio(lang));
   });
 

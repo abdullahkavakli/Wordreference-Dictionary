@@ -40,6 +40,10 @@
     "message": "Open in WordReference",
     "description": "Aria-label for the WR logo button that opens the full WR results page"
   },
+  "popupFooterSource": {
+    "message": "Results from WordReference.com",
+    "description": "Popup footer, after the copyright: credits WordReference as the source of the results"
+  },
   "popupFlagPronunciation": {
     "message": "Play $LANG$ pronunciation",
     "description": "Aria-label template for each flag-shaped pronunciation button",

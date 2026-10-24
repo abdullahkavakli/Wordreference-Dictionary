@@ -382,7 +382,8 @@ Steps for any release:
 1. Land all the work on `main`. Make sure `npm test` is green and
    `npm run test:e2e` passes.
 2. Bump `manifest.json` `"version"`. The `info.html` footer reads from the
-   manifest at runtime, so there is nothing to edit there.
+   manifest at runtime, so there is nothing to edit there. First release of
+   a new year: update the © year in the `popup.html` and `info.html` footers.
 3. Optional: bump `package.json` `"version"` to match.
 4. Commit: `chore(release): bump version to X.Y.Z`.
 5. Tag: `git tag -a vX.Y.Z -m "vX.Y.Z — short summary of what shipped"`.
