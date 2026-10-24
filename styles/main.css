@@ -1,13 +1,19 @@
+/* Oracle-style flat sheet: warm neutrals, charcoal actions, walnut accent */
 :root {
-  --wr-bg: #f3efe7;
-  --wr-paper: #fefcf8;
-  --wr-ink: #1f2933;
-  --wr-muted: #5b6470;
-  --wr-line: #d8cfbe;
+  --wr-bg: #ffffff;
+  --wr-paper: #ffffff;
+  --wr-ink: #161513;
+  --wr-muted: #6b655f;
+  --wr-line: #e4e1dd;
   --wr-accent: #6f4e37;
   --wr-accent-strong: #533729;
-  --wr-highlight: #ede2cf;
-  --wr-positive: #2f7a4d;
+  --wr-highlight: #f5f4f2;
+  --wr-positive: #33553c;
+  --wr-error: #d63b25;
+  --wr-primary: #312d2a;
+  --wr-primary-pressed: #47423e;
+  --wr-field: #8c867f;
+  --wr-focus: #227e9e;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -26,7 +32,7 @@
 
 .text-center { text-align: center; }
 .text-muted  { color: var(--wr-muted); }
-.text-info   { color: #17708e; }
+.text-info   { color: var(--wr-muted); }
 
 .container { width: 100%; }
 
@@ -80,7 +86,7 @@ table.table {
 
 table.table th,
 table.table td {
-  padding: 8px 10px;
+  padding: 10px 16px;
   vertical-align: top;
 }
 
@@ -89,26 +95,20 @@ table.table td {
   text-align: left;
 }
 
-.table-striped tbody tr:nth-of-type(odd) {
-  background-color: #f7f0e0;
-}
-
 .table-hover tbody tr:hover {
-  background-color: #f6ecd9;
+  background-color: var(--wr-highlight);
 }
 
 body {
-  min-width: 490px;
+  margin: 0;
+  min-width: 506px;
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, "P052", "TeX Gyre Pagella", serif;
   color: var(--wr-ink);
-  background:
-    radial-gradient(circle at 12% 18%, #ffffff 0%, transparent 40%),
-    radial-gradient(circle at 90% 0%, #efe5d4 0%, transparent 34%),
-    var(--wr-bg);
+  background: var(--wr-bg);
 }
 
 #form_div {
-  padding: 10px 10px 8px;
+  padding: 12px 16px;
 }
 
 .input-row {
@@ -120,48 +120,45 @@ body {
 #search-input {
   flex: 1;
   box-sizing: border-box;
-  border: 2px solid var(--wr-line);
-  border-radius: 10px;
+  border: 1px solid var(--wr-field);
+  border-radius: 6px;
   font-size: 15px;
   background-color: var(--wr-paper);
   color: var(--wr-ink);
-  padding: 9px 12px;
+  padding: 12px 18px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #search-input::placeholder {
-  color: #7d7260;
+  color: var(--wr-muted);
 }
 
 #search-input:focus {
   outline: none;
-  border-color: var(--wr-accent);
-  box-shadow: 0 0 0 3px rgb(111 78 55 / 14%);
+  border-color: var(--wr-focus);
 }
 
 #wr-btn {
-  background: linear-gradient(135deg, var(--wr-accent), #7f624a);
+  align-self: stretch;
+  background: var(--wr-primary);
   border: 0;
-  border-radius: 10px;
-  color: #fff8ef;
+  border-radius: 4px;
+  color: #fff;
   font-family: "Trebuchet MS", "Gill Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   white-space: nowrap;
   min-width: 54px;
-  padding: 8px 10px;
-  box-shadow: 0 4px 12px rgb(83 55 41 / 22%);
+  padding: 10px 16px;
 }
 
 #wr-btn:hover,
 #wr-btn:focus {
-  background: linear-gradient(135deg, var(--wr-accent-strong), var(--wr-accent));
+  background: var(--wr-primary-pressed);
 }
 
 #voice-tts {
-  border-top: 1px solid var(--wr-line);
-  background: linear-gradient(180deg, rgb(255 255 255 / 55%), transparent);
-  padding: 6px 56px 7px 8px;
+  padding: 0 64px 12px 16px;
   display: none;
   position: relative;
   align-items: center;
@@ -172,28 +169,31 @@ body {
   width: 40px;
   height: 30px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 2px;
-  background: rgb(255 255 255 / 72%);
-  box-shadow: 0 1px 3px rgb(31 41 51 / 16%);
 }
 
 .icon-btn {
   padding: 5px 3px;
   min-height: 40px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: transparent;
   line-height: 0;
   cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: rgb(22 21 19 / 8%);
 }
 
 .btn:focus-visible,
 .icon-btn:focus-visible,
 .favorite-btn:focus-visible,
 .wr-logo-btn:focus-visible,
-.wr-word-link:focus-visible {
-  outline: 2px solid var(--wr-accent);
+.wr-word-link:focus-visible,
+#search-input:focus-visible {
+  outline: 2px solid var(--wr-focus);
   outline-offset: 2px;
 }
 
@@ -211,37 +211,28 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Saved is shown by the filled ★ glyph, not by colour */
 .favorite-btn {
   font-size: 22px;
   line-height: 1;
-  color: var(--wr-accent);
+  color: var(--wr-primary);
   cursor: pointer;
   margin-right: 2px;
-  transition: transform 0.12s ease, color 0.16s ease;
-}
-
-.favorite-btn:hover {
-  transform: translateY(-1px) scale(1.06);
-  color: #8a5f42;
 }
 
 .favorite-btn:disabled {
-  color: #9aa0a6;
+  color: #aea8a2;
   cursor: not-allowed;
-}
-
-.favorite-btn.is-saved {
-  color: #e8a000;
-}
-
-.favorite-btn.is-saved:hover {
-  color: #b87000;
 }
 
 .favorite-status {
   font-size: 12px;
   color: var(--wr-positive);
   white-space: nowrap;
+}
+
+.favorite-status.is-error {
+  color: var(--wr-error);
 }
 
 .favorite-status:empty {
@@ -252,45 +243,32 @@ body {
   height: 28px;
   width: 42px;
   border-radius: 4px;
-  box-shadow: 0 1px 2px rgb(31 41 51 / 18%);
+  outline: 1px solid var(--wr-line);
+  outline-offset: -1px;
   cursor: pointer;
-  transition: transform 0.14s ease, filter 0.14s ease;
-}
-
-.flag:hover {
-  transform: translateY(-1px);
-  filter: saturate(1.12);
 }
 
 .wr-logo-btn {
   position: absolute;
-  right: 14px;
+  right: 13px;
   cursor: pointer;
-  opacity: 0.9;
 }
 
 .wr-logo-img {
   height: 28px;
   border-radius: 6px;
-  box-shadow: 0 2px 7px rgb(31 41 51 / 22%);
-}
-
-.wr-logo-btn:hover {
-  opacity: 1;
+  outline: 1px solid var(--wr-line);
+  outline-offset: -1px;
 }
 
 .search_results {
-  width: 490px;
-  padding: 0 8px 6px;
+  width: 506px;
 }
 
 table {
   overflow: auto;
   font-size: 15px;
   line-height: 1.4;
-  margin-bottom: 10px;
-  border: 1px solid var(--wr-line);
-  border-radius: 8px;
   background-color: var(--wr-paper);
 }
 
@@ -304,20 +282,29 @@ table thead {
 
 table thead th {
   background: var(--wr-highlight);
-  border-bottom: 1px solid var(--wr-line);
-  color: #4c3b2b;
+  color: var(--wr-muted);
   font-family: "Trebuchet MS", "Gill Sans", sans-serif;
   font-size: 12px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
-table tbody tr:nth-child(even) {
-  background-color: #fcf8ef;
+table tbody tr:hover {
+  background-color: var(--wr-highlight);
 }
 
-table tbody tr:hover {
-  background-color: #f6ecd9;
+/* No lines between words: a new English word gets a little air, and its
+   extra translations sit tight beneath it */
+table tbody tr:has(> td:first-child:not(:empty)) > td {
+  padding-top: 14px;
+}
+
+table tbody tr:has(> td:first-child:empty) > td {
+  padding-top: 0;
+}
+
+table tbody tr:last-child > td {
+  padding-bottom: 14px;
 }
 
 /* Result words are buttons (they run a new search) dressed as text */
@@ -342,8 +329,7 @@ table tbody td + td .wr-word-link {
 }
 
 table tbody .wr-word-link:hover {
-  color: #7f5539;
-  text-decoration: underline;
+  color: var(--wr-accent-strong);
 }
 
 td:lang(ar) {
@@ -358,10 +344,6 @@ td:lang(ar) {
 }
 
 .wr-def-section {
-  margin-bottom: 12px;
-  padding: 7px 8px;
-  border: 1px solid var(--wr-line);
-  border-radius: 8px;
   background: var(--wr-paper);
 }
 
@@ -369,14 +351,13 @@ td:lang(ar) {
   font-size: 12px;
   color: var(--wr-muted);
   font-style: italic;
-  border-bottom: 1px solid var(--wr-line);
-  padding: 4px 0;
-  margin-bottom: 4px;
+  background: var(--wr-highlight);
+  padding: 10px 16px;
 }
 
 .wr-def-list {
-  padding-left: 24px;
-  margin: 4px 0;
+  padding: 12px 16px 8px 44px;
+  margin: 0;
   font-size: 15px;
   line-height: 1.45;
 }
@@ -392,12 +373,16 @@ td:lang(ar) {
 }
 
 .popup-footer {
-  text-align: center;
-  font-size: 12px;
-  color: #5f6873;
-  margin-top: 10px;
-  border-top: 1px solid var(--wr-line);
-  padding-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 8pt;
+  color: var(--wr-muted);
+  padding: 12px 16px;
+}
+
+.popup-footer-source {
+  color: var(--wr-accent);
 }
 
 /* No notice until there is something to credit */
@@ -406,16 +391,7 @@ td:lang(ar) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #search-input,
-  #wr-btn,
-  .favorite-btn,
-  .flag,
-  .wr-logo-btn {
+  #search-input {
     transition: none;
-  }
-
-  .favorite-btn:hover,
-  .flag:hover {
-    transform: none;
   }
 }

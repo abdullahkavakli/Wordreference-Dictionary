@@ -134,7 +134,7 @@ function getFirstDefinitionExplanation(defSections) {
 
 function showFavoriteStatus(text, isError = false) {
   if (!favoriteStatusEl) return;
-  favoriteStatusEl.style.color = isError ? '#b00020' : '#2e7d32';
+  favoriteStatusEl.classList.toggle('is-error', isError);
   favoriteStatusEl.textContent = text || '';
 }
 
